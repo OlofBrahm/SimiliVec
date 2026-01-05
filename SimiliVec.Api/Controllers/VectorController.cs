@@ -23,7 +23,7 @@ public class VectorController : ControllerBase
             return BadRequest("No documents provided for indexing.");
         }
 
-
+       await _vectorService.IndexDocument();
         return Ok("Documents indexed successfully");
     }
 

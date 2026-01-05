@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace VectorDataBase.Core;
 
-public class HsnwNode
+public class HnswNode
 {
     public int id { get; set; }
     public float[] Vector { get; init; } = Array.Empty<float>();

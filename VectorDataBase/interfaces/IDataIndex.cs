@@ -6,13 +6,13 @@ namespace VectorDataBase.Interfaces;
 
 public interface IDataIndex
 {
-    Dictionary<int, HsnwNode> Nodes { get; set; }
+    Dictionary<int, HnswNode> Nodes { get; set; }
     /// <summary>
     /// Insert a new node into the index
     /// </summary>
     /// <param name="newNode"></param>
     /// <param name="random"></param>
-    void Insert(HsnwNode newNode, Random random);
+    void Insert(HnswNode newNode, Random random);
 
     /// <summary>
     /// Find nearest neighbors for a given query vector

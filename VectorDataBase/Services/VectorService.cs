@@ -49,7 +49,7 @@ public class VectorService : IVectorService
             {
                 float[] vector = _embeddingModel.GetEmbeddings(chunkText);
                 var nodeId = NextId();
-                var node = new HsnwNode { id = nodeId, Vector = vector };
+                var node = new HnswNode { id = nodeId, Vector = vector };
                 _dataIndex.Insert(node, _random);
                 _indexToDocumentMap.Add(nodeId, document.Id);
                 totalChunks++;

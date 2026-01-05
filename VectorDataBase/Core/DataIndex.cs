@@ -10,7 +10,7 @@ namespace VectorDataBase.Core;
 /// </summary>
 public class DataIndex : IDataIndex
 {
-    public Dictionary<int, HsnwNode> Nodes { get; set; } = new Dictionary<int, HsnwNode>();
+    public Dictionary<int, HnswNode> Nodes { get; set; } = new Dictionary<int, HnswNode>();
 
     public int EntryPointId { get; private set; } //id of the entry point node
     public int MaxLevel { get; private set; } //highest level in the graph
@@ -23,7 +23,7 @@ public class DataIndex : IDataIndex
     /// </summary>
     /// <param name="newNode"></param>
     /// <param name="random"></param>
-    public void Insert(HsnwNode newNode, Random random)
+    public void Insert(HnswNode newNode, Random random)
     {
         if (Nodes.Count == 0)
         {
@@ -49,7 +49,7 @@ public class DataIndex : IDataIndex
     /// Initialize the first node in the index
     /// </summary>
     /// <param name="newNode"></param>
-    private void InitializeFirstNode(HsnwNode newNode)
+    private void InitializeFirstNode(HnswNode newNode)
     {
         newNode.level = 0;
         newNode.Neighbors = new List<int>[1];
@@ -65,7 +65,7 @@ public class DataIndex : IDataIndex
     /// <param name="newNode"></param>
     /// <param name="random"></param>
     /// <returns></returns>
-    private int InitializeNewNode(HsnwNode newNode, Random random)
+    private int InitializeNewNode(HnswNode newNode, Random random)
     {
         // Calculate and assign level
         int newNodeLevel = HNSWUtils.GetRandomLevel(InverseLogM, random);
@@ -88,7 +88,7 @@ public class DataIndex : IDataIndex
     /// <param name="newNodeLevel"></param>
     /// <param name="currentEntryId"></param>
     /// <returns></returns>
-    private int SearchTopLayers(HsnwNode newNode, int newNodeLevel, int currentEntryId)
+    private int SearchTopLayers(HnswNode newNode, int newNodeLevel, int currentEntryId)
     {
         // Search from MaxLevel down to newNodeLevel + 1
         for (int level = MaxLevel; level > newNodeLevel; level--)
@@ -113,7 +113,7 @@ public class DataIndex : IDataIndex
     /// <param name="newNode"></param>
     /// <param name="newNodeLevel"></param>
     /// <param name="currentEntryId"></param>
-    private void ConnectLayers(HsnwNode newNode, int newNodeLevel, int currentEntryId)
+    private void ConnectLayers(HnswNode newNode, int newNodeLevel, int currentEntryId)
     {
         // Connect from min(newNodeLevel, MaxLevel) down to 0
         for (int level = Math.Min(newNodeLevel, MaxLevel); level >= 0; level--)
@@ -130,7 +130,7 @@ public class DataIndex : IDataIndex
             // Connect neighbors back to the new node and manage their connections
             foreach (int neighborId in neighborsToConnect)
             {
-                HsnwNode neighborNode = Nodes[neighborId];
+                HnswNode neighborNode = Nodes[neighborId];
                 neighborNode.Neighbors[level].Add(newNode.id);
 
                 if (neighborNode.Neighbors[level].Count > MaxNeighbours)
@@ -151,7 +151,7 @@ public class DataIndex : IDataIndex
     /// Update global index state if the new node has the highest level
     /// </summary>
     /// <param name="newNode"></param>
-    private void UpdateMaxState(HsnwNode newNode)
+    private void UpdateMaxState(HnswNode newNode)
     {
         if (newNode.level > MaxLevel)
         {
@@ -265,7 +265,7 @@ public class DataIndex : IDataIndex
     /// <param name="layer"></param>
     public void ShrinkConnections(int nodeId, int layer)
     {
-        HsnwNode node = Nodes[nodeId];
+        HnswNode node = Nodes[nodeId];
         List<int> currentNeighbors = node.Neighbors[layer];
 
         if (currentNeighbors.Count <= MaxNeighbours)
@@ -325,7 +325,7 @@ public class DataIndex : IDataIndex
         HashSet<int> visitedSet = new HashSet<int>();
 
         //Initialize with entry point
-        HsnwNode entryNode = Nodes[entryId];
+        HnswNode entryNode = Nodes[entryId];
         //Convert cosine similarity to distance
         float entryDistance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, entryNode.Vector);
 
@@ -357,7 +357,7 @@ public class DataIndex : IDataIndex
             }
 
             //Explore neighbors of the current best node
-            HsnwNode currentNode = Nodes[currentBestId];
+            HnswNode currentNode = Nodes[currentBestId];
 
             //Get neighbors at the current layer (check if layer exists for this node)
             if (layer < currentNode.Neighbors.Length)
@@ -369,7 +369,7 @@ public class DataIndex : IDataIndex
                     if (visitedSet.Add(neighborId))
                     {
                         //Calculate distance to neighbor
-                        HsnwNode neighborNode = Nodes[neighborId];
+                        HnswNode neighborNode = Nodes[neighborId];
                         float neighborDistance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, neighborNode.Vector);
 
                         //Add neighbor to candidate queue if it qualifies
