@@ -1,8 +1,5 @@
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Mvc;
-using VectorDataBase.Services;
-using VectorDataBase.Datahandling;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -38,4 +35,11 @@ public class VectorController : ControllerBase
         var results = await _vectorService.Search(query, k);
         return Ok(results);
     }
+    [HttpGet("nodes")]
+    public async Task<IActionResult> GetNodes()
+    {
+        var nodes = await _vectorService.GetPCANodes();
+        return Ok(nodes);
+    }
+    
 }

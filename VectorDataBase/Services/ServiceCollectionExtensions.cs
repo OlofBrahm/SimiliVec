@@ -4,6 +4,7 @@ using VectorDataBase.Datahandling;
 using VectorDataBase.Embedding;
 using VectorDataBase.Core;
 using VectorDataBase;
+using VectorDataBase.PCA;
 
 namespace VectorDataBase.Services;
 
@@ -24,6 +25,8 @@ public static class ServiceCollectionExtensions
 
         // Data loading
         services.AddSingleton<IDataLoader, DataLoader>();
+
+        services.AddSingleton<PCAConversion>();
 
         // VectorService holds state and coordinates index/embeddings
         services.AddSingleton<IVectorService, VectorService>();

@@ -34,6 +34,9 @@ try
     var indexTask = vectorService.IndexDocument();
     indexTask.Wait(); // Block and wait for indexing to complete
     Console.WriteLine("Pre-startup: Documents indexed on startup successfully.");
+    Console.WriteLine("Pre-startup: Training PCA model");
+    var initialPCANodes = await vectorService.GetPCANodes();
+    Console.WriteLine($"Pre-startup: PCA Model trained on {initialPCANodes.Count}");
 }
 catch (Exception ex)
 {
