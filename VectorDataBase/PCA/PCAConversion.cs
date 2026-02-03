@@ -17,7 +17,18 @@ public class PCAConversion
     private const int EmbeddingDim = 384;
 
 
-    //Convert HNSW nodes to PCA reduced nodes
+    /// <summary>
+    /// Trains a PCA transformer on the provided HNSW node embeddings and projects all vectors
+    /// to the requested dimensionality. Stores the trained transformer in <c>_pcaModel</c>
+    /// and returns a dictionary of projected results keyed by original node id.
+    /// </summary>
+    /// <param name="nodes">Mapping of node id to <see cref="HnswNode"/> with 384-dim embeddings.</param>
+    /// <param name="outputDimensions">Target projection size (clamped to ≤ 384). Default is 3.</param>
+    /// <returns>Dictionary of node id to <see cref="PCANode"/> containing the reduced vector.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="nodes"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if there are no vectors or any vector length differs from the expected embedding size.
+    /// </exception>
     public Dictionary<int, PCANode> ConvertToPCA(Dictionary<int, HnswNode> nodes, int outputDimensions = 3)
     {
         if (nodes == null) throw new ArgumentNullException(nameof(nodes));
@@ -62,6 +73,13 @@ public class PCAConversion
     }
 
 
+    /// <summary>
+    /// Projects a 384‑dim input embedding into the trained PCA space and returns the reduced coordinates.
+    /// </summary>
+    /// <param name="vector">Input embedding of length EmbeddingDim (384).</param>
+    /// <returns>PCA-projected features (e.g., 3D coordinates).</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the PCA model is not trained.</exception>
+    /// <exception cref="ArgumentException">Thrown if the input length is not EmbeddingDim.</exception>
     public float[] Transform(float[] vector)
     {
         if (_pcaModel == null) throw new InvalidOperationException("PCA model must be trained first.");
