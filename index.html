@@ -2,218 +2,157 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vector DB Simple Frontend</title>
-    
+    <title>SimiliVec HNSW Test Bench</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f4f4f9;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        input[type="text"], input[type="number"], button {
-            padding: 10px;
-            margin: 5px 0 10px 0;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            display: block;
-            width: 98%;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            border: none;
-            transition: background-color 0.3s;
-            width: fit-content;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .status-message {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .results-container {
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-            margin-top: 15px;
-        }
-        .result-item {
-            padding: 10px;
-            border-bottom: 1px dashed #ddd;
-        }
+        body { background: #121212; color: white; }
+        #canvas-container { width: 100%; height: 500px; background: #000; border-radius: 8px; position: relative; }
+        .sidebar { height: 100vh; overflow-y: auto; border-right: 1px solid #333; padding: 20px; }
+        .card { background: #1e1e1e; color: white; border: 1px solid #333; margin-bottom: 10px; }
+        .node-count { position: absolute; top: 10; right: 10; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px; }
     </style>
 </head>
 <body>
-    <h1>Vector Database Interaction</h1>
 
-    <section class="card">
-        <h2>1. Index Documents</h2>
-        <p>This action triggers the document indexing process on the server.</p>
-        <button id="indexButton">Start Indexing</button>
-        <div id="indexStatus" class="status-message"></div>
-    </section>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4 sidebar">
+            <h3>SimiliVec 3D</h3>
+            <hr>
+            
+            <button onclick="fetchInitialMap()" class="btn btn-primary w-100 mb-3">1. Load Global Map</button>
+            
+            <div class="input-group mb-3">
+                <input id="queryInput" type="text" class="form-control" placeholder="Search vectors...">
+                <button onclick="performSearch()" class="btn btn-success">Search</button>
+            </div>
 
-    <section class="card">
-        <h2>2. Search Documents</h2>
-        <form id="searchForm">
-            <label for="query">Search Query:</label>
-            <input type="text" id="query" placeholder="Enter your query here..." required>
-            
-            <label for="kValue">Number of Results (k):</label>
-            <input type="number" id="kValue" value="5" min="1" max="100">
-            
-            <button type="submit">Search</button>
-        </form>
-        
-        <h3>Search Results:</h3>
-        <div id="searchResults" class="results-container">
-            <p>Enter a query and press Search.</p>
+            <div id="resultsList">
+                <p class="text-muted">Search results will appear here...</p>
+            </div>
         </div>
-    </section>
 
-    <script>
-        // *** API URL based on your previous logs: http://localhost:5202 ***
-        const API_BASE_URL = 'http://localhost:5202/api/vector'; 
+        <div class="col-md-8 p-4">
+            <div id="canvas-container">
+                <div class="node-count">Nodes: <span id="count">0</span></div>
+            </div>
+            <div class="mt-3">
+                <h5>3D Navigation</h5>
+                <p class="small text-muted">Left Click: Rotate | Scroll: Zoom | Right Click: Pan</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // --- Indexing Logic ---
+<script>
+    const API_URL = "http://localhost:5202/api/vector"; // Update to your API URL
+    let scene, camera, renderer, points, queryMarker;
+    let nodeObjects = {};
 
-        document.getElementById('indexButton').addEventListener('click', async () => {
-            const statusDiv = document.getElementById('indexStatus');
-            statusDiv.textContent = 'Indexing in progress...';
-            statusDiv.className = 'status-message'; 
+    // --- 3D SETUP ---
+    function init3D() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / 500, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(document.getElementById('canvas-container').clientWidth, 500);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(10, 10, 10);
+        scene.add(light);
+        
+        camera.position.z = 5;
+        animate();
+    }
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/index`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+    function animate() {
+        requestAnimationFrame(animate);
+        if (points) points.rotation.y += 0.001;
+        renderer.render(scene, camera);
+    }
 
-                const resultText = await response.text();
+    // --- API CALLS ---
 
-                if (response.ok) {
-                    statusDiv.textContent = resultText.replace(/"/g, ''); 
-                    statusDiv.classList.add('success');
-                } else {
-                    statusDiv.textContent = `Error: ${resultText || response.statusText}`;
-                    statusDiv.classList.add('error');
-                }
-            } catch (error) {
-                statusDiv.textContent = `Network Error: ${error.message}. Check if your API is running and CORS is enabled.`;
-                statusDiv.classList.add('error');
-            }
-        });
-
-
-        // --- Search Logic ---
-
-        document.getElementById('searchForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const queryInput = document.getElementById('query');
-            const kInput = document.getElementById('kValue');
-            const resultsDiv = document.getElementById('searchResults');
+    // 1. Fetch all nodes for the 3D cloud
+    async function fetchInitialMap() {
+        try {
+            // Adjust endpoint if necessary
+            const response = await fetch(`${API_URL}/nodes`); 
+            const nodes = await response.json(); // Dictionary<int, PCANode>
             
-            const query = queryInput.value.trim();
-            const k = parseInt(kInput.value, 10) || 5;
+            renderPointCloud(Object.values(nodes));
+            document.getElementById('count').innerText = Object.keys(nodes).length;
+        } catch (e) { console.error("Map Load Failed", e); }
+    }
 
-            if (!query) {
-                resultsDiv.innerHTML = '<p class="error">Search query cannot be empty.</p>';
-                return;
-            }
+    // 2. Perform Vector Search
+    async function performSearch() {
+        const query = document.getElementById('queryInput').value;
+        const k = 5;
 
-            resultsDiv.innerHTML = '<p>Searching...</p>';
+        try {
+            const response = await fetch(`${API_URL}/search?k=${k}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(query)
+            });
+            const data = await response.json(); // SearchResponse
 
-            try {
-                const url = `${API_BASE_URL}/search?k=${k}`;
-                
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(query) 
-                });
+            displayResults(data.documents);
+            highlightSearchIn3D(data.queryPosition, data.resultNodeIds);
+        } catch (e) { console.error("Search Failed", e); }
+    }
 
-                if (response.ok) {
-                    const results = await response.json();
-                    displayResults(results, resultsDiv);
-                } else {
-                    const error = await response.text();
-                    resultsDiv.innerHTML = `<p class="error">Error: ${error || response.statusText}</p>`;
-                }
-            } catch (error) {
-                resultsDiv.innerHTML = `<p class="error">Network Error: ${error.message}</p>`;
-            }
+    // --- RENDERING LOGIC ---
+
+    function renderPointCloud(nodes) {
+        if(points) scene.remove(points);
+
+        const geometry = new THREE.BufferGeometry();
+        const positions = [];
+        const colors = [];
+
+        nodes.forEach(node => {
+            positions.push(node.reducedVector[0], node.reducedVector[1], node.reducedVector[2]);
+            colors.push(0, 0.5, 1); // Default Blue
         });
 
-        // --- UPDATED displayResults function to handle non-array responses ---
-        function displayResults(results, container) {
-            let resultsArray = [];
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-            // 1. Handle Null/Undefined/Empty Response
-            if (!results) {
-                container.innerHTML = '<p>No results found (API returned null/undefined).</p>';
-                return;
-            }
+        const material = new THREE.PointsMaterial({ size: 0.05, vertexColors: true });
+        points = new THREE.Points(geometry, material);
+        scene.add(points);
+    }
 
-            // 2. Normalize results into an array
-            if (Array.isArray(results)) {
-                resultsArray = results;
-            } else if (typeof results === 'object' && results !== null) {
-                // If it's a single object (which is likely causing the error), wrap it in an array.
-                resultsArray = [results];
-            } else {
-                // If it's another unexpected format (e.g., a simple string/number), handle as error.
-                container.innerHTML = '<p class="error">Error: Received unexpected data format from API.</p>';
-                return;
-            }
+    function highlightSearchIn3D(queryPos, hitIds) {
+        // Remove old marker
+        if(queryMarker) scene.remove(queryMarker);
 
-            // 3. Check for empty array
-            if (resultsArray.length === 0) {
-                container.innerHTML = '<p>No results found.</p>';
-                return;
-            }
+        // Add Red Sphere at Search Landing Point
+        const geo = new THREE.SphereGeometry(0.1);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        queryMarker = new THREE.Mesh(geo, mat);
+        queryMarker.position.set(queryPos[0], queryPos[1], queryPos[2]);
+        scene.add(queryMarker);
 
-            // 4. Proceed with mapping the now-guaranteed array
-            // DocumentModel has: Id, Content, MetaData, Distance
-            const html = resultsArray.map((result, index) => {
-                const content = result.content || result.Content || 'Document content not available';
-                const distance = result.distance !== undefined ? result.distance.toFixed(4) : 'N/A';
-                const id = result.id || result.Id || 'N/A';
-                
-                return `
-                    <div class="result-item">
-                        <strong>Result ${index + 1} (ID: ${id})</strong> (Distance: ${distance})
-                        <p>${content}</p>
-                    </div>
-                `;
-            }).join('');
+        // Move camera to look at the landing point
+        camera.position.set(queryPos[0], queryPos[1], queryPos[2] + 3);
+    }
 
-            container.innerHTML = html;
-        }
-    </script>
+    function displayResults(docs) {
+        const container = document.getElementById('resultsList');
+        container.innerHTML = docs.map(doc => `
+            <div class="card p-3">
+                <strong>Doc ID: ${doc.id}</strong>
+                <p class="small mb-0">${doc.content.substring(0, 100)}...</p>
+                <span class="badge bg-info mt-2">Similarity Score: ${doc.distance?.toFixed(4) || 'N/A'}</span>
+            </div>
+        `).join('');
+    }
+
+    window.onload = init3D;
+</script>
 </body>
 </html>
