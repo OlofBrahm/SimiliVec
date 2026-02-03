@@ -241,7 +241,6 @@ public class DataIndex : IDataIndex
             }
         }
 
-        //Second pass: fill remaining slots if needed
         if (selectedNeighbors.Count < maxConnections)
         {
             foreach (var candidate in sortedCandidates)
