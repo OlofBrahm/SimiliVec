@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 namespace VectorDataBase.Datahandling;
 public class DocumentModel
 {
@@ -16,6 +17,7 @@ public class DocumentModel
     /// </summary>
     public Dictionary<string, string> MetaData {get; set;} = new Dictionary<string, string>();
     
+    [JsonIgnore]
     public float Distance {get; set;}
 
 }

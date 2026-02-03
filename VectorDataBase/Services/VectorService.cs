@@ -8,31 +8,28 @@ using VectorDataBase.Datahandling;
 using VectorDataBase.Utils;
 using System.Threading.Tasks;
 using VectorDataBase.PCA;
-using Microsoft.VisualBasic;
 
 namespace VectorDataBase.Services;
 
-public class VectorService : IVectorService
+public sealed class VectorService : IVectorService
 {
     private readonly IDataIndex _dataIndex;
     private readonly IEmbeddingModel _embeddingModel;
     private readonly PCAConversion _pcaConverter;
-    private readonly Dictionary<string, DocumentModel> _documentStorage = new Dictionary<string, DocumentModel>();
+    private readonly Dictionary<string, DocumentModel> _documentStorage = new();
     private readonly Dictionary<int, string> _indexToDocumentMap = new Dictionary<int, string>();
     private int _currentId = 0;
     private int NextId() => Interlocked.Increment(ref _currentId);
-    private readonly Random _random = new Random();
+    private readonly Random _random = Random.Shared;
     private readonly IDataLoader _dataLoader;
     public VectorService(IDataIndex dataIndex, IEmbeddingModel embeddingModel, IDataLoader dataLoader, PCAConversion pcaConverter)
     {
-        Console.WriteLine("VectorService: Constructor called");
         _dataIndex = dataIndex;
         _embeddingModel = embeddingModel;
         _dataLoader = dataLoader;
         _pcaConverter = pcaConverter;
-        Console.WriteLine("VectorService: Loading documents...");
+
         _documentStorage = _dataLoader.LoadAllDocuments().ToDictionary(doc => doc.Id, doc => doc);
-        Console.WriteLine($"VectorService: Constructor complete. Loaded {_documentStorage.Count()} documents");
     }
 
 
@@ -40,20 +37,18 @@ public class VectorService : IVectorService
     /// Return the HNSW Nodes in the data index
     /// </summary>
     /// <returns></returns>
-    public async Task<Dictionary<int, PCANode>> GetPCANodes()
+    public Task<Dictionary<int, PCANode>> GetPCANodes()
     {
-        // Need to be ran through PCA before returning, need to retain Ids
-        return await Task.Run(() => _pcaConverter.ConvertToPCA(_dataIndex.Nodes));
+        var nodes = _pcaConverter.ConvertToPCA(_dataIndex.Nodes);
+        return Task.FromResult(nodes);
     }
 
     /// <summary>
     /// Return the collection of documents in storage
     /// </summary>
     /// <returns></returns>
-    public Dictionary<string, DocumentModel> GetDocuments()
-    {
-        return _documentStorage;
-    }
+    public IReadOnlyDictionary<string, DocumentModel> GetDocuments() => _documentStorage;
+
 
     /// <summary>
     /// Index documents from a text file
@@ -61,35 +56,27 @@ public class VectorService : IVectorService
     /// <returns></returns>
     public Task IndexDocument()
     {
+        const int maxChunkSize = 500;
         int totalChunks = 0;
-        Console.WriteLine($"IndexDocument: Starting indexing for {_documentStorage.Count()} documents");
 
         foreach (var document in _documentStorage.Values)
         {
-            string[] chunks = SimpleTextChunker.Chunk(document.Content, maxChunkSize: 500);
-            Console.WriteLine($"Document {document.Id}: {chunks.Length} chunks");
-
+            var chunks = SimpleTextChunker.Chunk(document.Content, maxChunkSize);
             foreach (var chunkText in chunks)
             {
-                float[] vector = _embeddingModel.GetEmbeddings(chunkText);
+                if (string.IsNullOrWhiteSpace(chunkText)) continue; // avoid zero vectors
+
+                var vector = _embeddingModel.GetEmbeddings(chunkText);
                 var nodeId = NextId();
                 var node = new HnswNode { id = nodeId, Vector = vector };
+
                 _dataIndex.Insert(node, _random);
                 _indexToDocumentMap[nodeId] = document.Id;
                 totalChunks++;
             }
         }
-        Console.WriteLine($"IndexDocument: Indexing complete. Total {totalChunks} chunks indexed");
-        return Task.CompletedTask;
-    }
 
-    /// <summary>
-    /// returns all documents from storage
-    /// </summary>
-    /// <returns></returns>
-    public IEnumerable<DocumentModel> GetAllDocuments()
-    {
-        return _documentStorage.Values;
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -98,34 +85,68 @@ public class VectorService : IVectorService
     /// <param name="query"></param>
     /// <param name="k"></param>
     /// <returns></returns>
-    public async Task<SearchRespone> Search(string query, int k = 5)
+    public  Task<SearchRespone> Search(string query, int k = 5)
     {
-        return await Task.Run(() =>
+        var queryVector = _embeddingModel.GetEmbeddings(query);
+        var query3D = _pcaConverter.Transform(queryVector);
+
+        var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, k);
+
+        var hits = new List<SearchHit>(nearestIds.Count);
+        foreach (var id in nearestIds)
         {
-            float[] queryVector = _embeddingModel.GetEmbeddings(query);
-            float[] query3D = _pcaConverter.Transform(queryVector);
+            if (!_dataIndex.Nodes.TryGetValue(id, out var node)) continue;
 
-            var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, k);
-            var results = nearestIds
-            .Where(id => _indexToDocumentMap.ContainsKey(id))
-            .Select(id => _documentStorage[_indexToDocumentMap[id]])
-            .Distinct()
-            .ToList();
-            return new SearchRespone
+            float sim = HNSWUtils.CosineSimilarity(queryVector, node.Vector);
+            if (float.IsNaN(sim)) sim = 0f; // guard against zero vectors
+            float dist = 1.0f - sim;
+
+            if (_indexToDocumentMap.TryGetValue(id, out var docId) &&
+                _documentStorage.TryGetValue(docId, out var doc))
             {
-                QueryPosition = query3D,
-                Documents = results,
-                ResultNodeIds = nearestIds
-            };
-        });
+                hits.Add(new SearchHit
+                {
+                    NodeId = id,
+                    DocumentId = docId,
+                    Similarity = sim,
+                    Distance = dist,
+                    Document = doc
+                });
+            }
+        }
+
+        hits = hits.OrderByDescending(h => h.Similarity).ToList();
+
+        var seen = new HashSet<string>();
+        var orderedDistinctDocs = new List<DocumentModel>();
+        foreach (var h in hits)
+            if (seen.Add(h.DocumentId)) orderedDistinctDocs.Add(h.Document);
+
+        var response = new SearchRespone
+        {
+            QueryPosition = query3D,
+            Documents = orderedDistinctDocs,
+            ResultNodeIds = hits.Select(h => h.NodeId).ToList(),
+            Results = hits
+        };
+
+        return Task.FromResult(response);
     }
-
-
-
 }
+public class SearchHit
+{
+    public int NodeId { get; set; }
+    public string DocumentId { get; set; } = string.Empty;
+    public float Distance { get; set; }          // 1 - similarity
+    public float Similarity { get; set; }        // 0..1 cosine similarity
+    public DocumentModel Document { get; set; } = default!;
+}
+
 public class SearchRespone
 {
     public float[] QueryPosition { get; set; } = Array.Empty<float>();
     public List<DocumentModel> Documents { get; set; } = new();
     public List<int> ResultNodeIds { get; set; } = new();
+    // New: detailed hits including distances
+    public List<SearchHit> Results { get; set; } = new();
 }

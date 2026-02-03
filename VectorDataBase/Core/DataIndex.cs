@@ -315,97 +315,74 @@ public class DataIndex : IDataIndex
    /// <returns></returns>
     public List<int> SearchLayer(float[] queryVector, int entryId, int layer, int ef)
     {
-        //Assuming lower key = higher similarity
-        SortedDictionary<float, List<int>> candidateQueue = new SortedDictionary<float, List<int>>();
-        
-        //Store best candidates
-        SortedDictionary<float, List<int>> bestDistances = new SortedDictionary<float, List<int>>();
+        ef = Math.Max(1, ef);
 
-        //Set to keep track of visited nodes
-        HashSet<int> visitedSet = new HashSet<int>();
+        var candidateQueue = new SortedDictionary<float, List<int>>();
+        var bestDistances = new SortedDictionary<float, List<int>>();
+        var visitedSet = new HashSet<int>();
 
-        //Initialize with entry point
-        HnswNode entryNode = Nodes[entryId];
-        //Convert cosine similarity to distance
+        if (!Nodes.TryGetValue(entryId, out var entryNode))
+            return new List<int>();
+
         float entryDistance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, entryNode.Vector);
 
-        //Add to candidate queue and visited set
-        //List<int> as value so that two nodes of the same distance can exist in the same collection
-        candidateQueue.Add(entryDistance, new List<int> { entryId });
-        bestDistances.Add(entryDistance, new List<int> { entryId });
+        candidateQueue[entryDistance] = new List<int> { entryId };
+        bestDistances[entryDistance] = new List<int> { entryId };
         visitedSet.Add(entryId);
+
+        int bestCount = 1;
 
         while (candidateQueue.Count > 0)
         {
-            //Get current best candidate
             float currentBestDistance = candidateQueue.Keys.First();
-            int currentBestId = candidateQueue[currentBestDistance].First();
-            //remove best node from queue
-            candidateQueue[currentBestDistance].RemoveAt(0);
-            //Remove key if no more IDs
-            if (candidateQueue[currentBestDistance].Count == 0)
-            {
-                candidateQueue.Remove(currentBestDistance);
-            }
+            var bucket = candidateQueue[currentBestDistance];
+            int currentBestId = bucket[0];
+            bucket.RemoveAt(0);
+            if (bucket.Count == 0) candidateQueue.Remove(currentBestDistance);
 
-            //Get current worst result distance (The largest key in the result queue)
             float worstDistanceInResults = bestDistances.Keys.Last();
 
-            if (currentBestDistance > worstDistanceInResults && bestDistances.Count >= ef)
-            {
+            if (currentBestDistance > worstDistanceInResults && bestCount >= ef)
                 break;
-            }
 
-            //Explore neighbors of the current best node
-            HnswNode currentNode = Nodes[currentBestId];
+            var currentNode = Nodes[currentBestId];
 
-            //Get neighbors at the current layer (check if layer exists for this node)
             if (layer < currentNode.Neighbors.Length)
             {
-                List<int> neighborsAtLevel = currentNode.Neighbors[layer];
-
+                var neighborsAtLevel = currentNode.Neighbors[layer];
                 foreach (int neighborId in neighborsAtLevel)
                 {
                     if (visitedSet.Add(neighborId))
                     {
-                        //Calculate distance to neighbor
-                        HnswNode neighborNode = Nodes[neighborId];
+                        var neighborNode = Nodes[neighborId];
                         float neighborDistance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, neighborNode.Vector);
 
-                        //Add neighbor to candidate queue if it qualifies
-                        if (bestDistances.Count < ef || neighborDistance < worstDistanceInResults)
+                        if (bestCount < ef || neighborDistance < worstDistanceInResults)
                         {
-                            //Add to candidate queue
-                            if (!candidateQueue.ContainsKey(neighborDistance))
-                            {
-                                candidateQueue[neighborDistance] = new List<int>();
-                            }
-                            candidateQueue[neighborDistance].Add(neighborId);
+                            if (!candidateQueue.TryGetValue(neighborDistance, out var cqBucket))
+                                candidateQueue[neighborDistance] = cqBucket = new List<int>();
+                            cqBucket.Add(neighborId);
 
-                            //Add to best distances collection
-                            if(!bestDistances.ContainsKey(neighborDistance))
-                            {
-                                bestDistances[neighborDistance] = new List<int>();
-                            }
-                            bestDistances[neighborDistance].Add(neighborId);
-                            
+                            if (!bestDistances.TryGetValue(neighborDistance, out var bdBucket))
+                                bestDistances[neighborDistance] = bdBucket = new List<int>();
+                            bdBucket.Add(neighborId);
+                            bestCount++;
 
-                            //If candidate queue exceeds ef, remove the worst candidate
-                            if (bestDistances.Count > ef)
+                            if (bestCount > ef)
                             {
-                                float LastKey = bestDistances.Keys.Last();
-                                bestDistances[LastKey].RemoveAt(bestDistances[LastKey].Count - 1);
-                                if (bestDistances[LastKey].Count == 0)
-                                {
-                                    bestDistances.Remove(LastKey);
-                                }
-                                worstDistanceInResults = bestDistances.Keys.Last();
+                                float lastKey = bestDistances.Keys.Last();
+                                var lastBucket = bestDistances[lastKey];
+                                lastBucket.RemoveAt(lastBucket.Count - 1);
+                                if (lastBucket.Count == 0)
+                                    bestDistances.Remove(lastKey);
+                                bestCount--;
                             }
                         }
                     }
                 }
             }
         }
+
         return GetCandidatesFromQueue(bestDistances, ef);
     }
 }

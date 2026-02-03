@@ -99,7 +99,9 @@
             });
             const data = await response.json(); // SearchResponse
 
-            displayResults(data.documents);
+            // Use detailed hits with per-query scores
+            displayResults(data.results);
+
             highlightSearchIn3D(data.queryPosition, data.resultNodeIds);
         } catch (e) { console.error("Search Failed", e); }
     }
@@ -141,15 +143,26 @@
         camera.position.set(queryPos[0], queryPos[1], queryPos[2] + 3);
     }
 
-    function displayResults(docs) {
+    function displayResults(hits) {
         const container = document.getElementById('resultsList');
-        container.innerHTML = docs.map(doc => `
+        if (!Array.isArray(hits) || hits.length === 0) {
+            container.innerHTML = `<p class="text-muted">No results.</p>`;
+            return;
+        }
+
+        // Optional client-side sort (server already sorts by similarity desc)
+        hits = hits.slice().sort((a, b) => (b.similarity ?? 0) - (a.similarity ?? 0));
+
+        container.innerHTML = hits.map(h => {
+            const doc = h.document || {};
+            const score = typeof h.similarity === 'number' ? h.similarity.toFixed(4) : 'N/A';
+            return `
             <div class="card p-3">
                 <strong>Doc ID: ${doc.id}</strong>
-                <p class="small mb-0">${doc.content.substring(0, 100)}...</p>
-                <span class="badge bg-info mt-2">Similarity Score: ${doc.distance?.toFixed(4) || 'N/A'}</span>
-            </div>
-        `).join('');
+                <p class="small mb-0">${(doc.content || '').substring(0, 100)}...</p>
+                <span class="badge bg-info mt-2">Similarity Score: ${score}</span>
+            </div>`;
+        }).join('');
     }
 
     window.onload = init3D;

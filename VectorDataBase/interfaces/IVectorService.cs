@@ -8,8 +8,7 @@ using VectorDataBase.PCA;
 public interface IVectorService
 {
     Task IndexDocument();
-    IEnumerable<DocumentModel> GetAllDocuments();
     Task<SearchRespone> Search(string query, int k = 5);
-    Dictionary<string, DocumentModel> GetDocuments();
+    IReadOnlyDictionary<string, DocumentModel> GetDocuments();
     Task<Dictionary<int, PCANode>> GetPCANodes();
 }

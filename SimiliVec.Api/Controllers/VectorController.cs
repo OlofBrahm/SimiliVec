@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -14,13 +13,13 @@ public class VectorController : ControllerBase
     [HttpPost("index")]
     public async Task<IActionResult> IndexDocument()
     {
-        var documents = _vectorService.GetAllDocuments();
-        if(documents == null || !documents.Any())
+        var documents = _vectorService.GetDocuments();
+        if (documents == null || documents.Count == 0)
         {
             return BadRequest("No documents provided for indexing.");
         }
 
-       await _vectorService.IndexDocument();
+        await _vectorService.IndexDocument();
         return Ok("Documents indexed successfully");
     }
 
