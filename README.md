@@ -16,11 +16,12 @@
 
 ---
 
-## Key Features (Planned)
+## Key Features
 
 *  High-performance **HNSW** index implementation.
 *  Native integration with the **E5** embedding model.
 *  Simple API for vector insertion and similarity search.
+*  PCA Conversion for visualization of the database.
 
 ---
 
