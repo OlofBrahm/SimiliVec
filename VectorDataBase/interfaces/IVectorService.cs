@@ -11,4 +11,5 @@ public interface IVectorService
     Task<SearchRespone> Search(string query, int k = 5);
     IReadOnlyDictionary<string, DocumentModel> GetDocuments();
     Task<Dictionary<int, PCANode>> GetPCANodes();
+    Task AddDocument(DocumentModel doc, bool indexChunks = true);
 }

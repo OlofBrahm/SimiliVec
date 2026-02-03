@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
@@ -8,6 +9,7 @@ using VectorDataBase.Datahandling;
 using VectorDataBase.Utils;
 using System.Threading.Tasks;
 using VectorDataBase.PCA;
+using System.Text.Json;
 
 namespace VectorDataBase.Services;
 
@@ -22,6 +24,10 @@ public sealed class VectorService : IVectorService
     private int NextId() => Interlocked.Increment(ref _currentId);
     private readonly Random _random = Random.Shared;
     private readonly IDataLoader _dataLoader;
+    private readonly string _docPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "SimiliVec", "documents.json");
+
     public VectorService(IDataIndex dataIndex, IEmbeddingModel embeddingModel, IDataLoader dataLoader, PCAConversion pcaConverter)
     {
         _dataIndex = dataIndex;
@@ -131,6 +137,33 @@ public sealed class VectorService : IVectorService
         };
 
         return Task.FromResult(response);
+    }
+
+    public async Task AddDocument(DocumentModel doc, bool indexChunks = true)
+    {
+        // Persist in memory
+        _documentStorage[doc.Id] = doc;
+
+        // Write to disk
+        Directory.CreateDirectory(Path.GetDirectoryName(_docPath)!);
+        var allDocs = _documentStorage.Values.ToList();
+        var json = JsonSerializer.Serialize(allDocs, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(_docPath, json);
+
+        if (!indexChunks) return;
+
+        // Chunk, embed, and index
+        const int maxChunkSize = 500;
+        var chunks = SimpleTextChunker.Chunk(doc.Content, maxChunkSize);
+        foreach (var chunkText in chunks)
+        {
+            if (string.IsNullOrWhiteSpace(chunkText)) continue;
+            var vector = _embeddingModel.GetEmbeddings(chunkText);
+            var nodeId = NextId();
+            var node = new HnswNode { id = nodeId, Vector = vector };
+            _dataIndex.Insert(node, _random);
+            _indexToDocumentMap[nodeId] = doc.Id;
+        }
     }
 }
 public class SearchHit

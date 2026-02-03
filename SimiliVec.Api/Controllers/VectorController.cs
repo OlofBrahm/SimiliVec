@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VectorDataBase.Datahandling;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -40,5 +41,20 @@ public class VectorController : ControllerBase
         var nodes = await _vectorService.GetPCANodes();
         return Ok(nodes);
     }
-    
+    [HttpPost("documents")]
+    public async Task<IActionResult> AddDocument([FromBody] DocumentModel input)
+    {
+        if (input == null || string.IsNullOrWhiteSpace(input.Id) || string.IsNullOrWhiteSpace(input.Content))
+            return BadRequest("Id and Content are required.");
+
+        var doc = new DocumentModel
+        {
+            Id = input.Id.Trim(),
+            Content = input.Content,
+            MetaData = input.MetaData ?? new Dictionary<string, string>()
+        };
+
+        await _vectorService.AddDocument(doc, indexChunks: true);
+        return Ok(new { id = doc.Id });
+    }
 }

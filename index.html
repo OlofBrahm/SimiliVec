@@ -14,25 +14,46 @@
     </style>
 </head>
 <body>
-
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-4 sidebar">
-            <h3>SimiliVec 3D</h3>
-            <hr>
-            
-            <button onclick="fetchInitialMap()" class="btn btn-primary w-100 mb-3">1. Load Global Map</button>
-            
-            <div class="input-group mb-3">
-                <input id="queryInput" type="text" class="form-control" placeholder="Search vectors...">
-                <button onclick="performSearch()" class="btn btn-success">Search</button>
+        <!-- Add Document UI -->
+        <div class="col-4 p-3">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Add Document</h5>
+                    <div class="mb-2">
+                        <label class="form-label">Id</label>
+                        <input id="newDocId" class="form-control" placeholder="CS-101">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Content</label>
+                        <textarea id="newDocContent" class="form-control" rows="6" placeholder="Your text..."></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">MetaData (JSON, optional)</label>
+                        <input id="newDocMeta" class="form-control" placeholder='{"source":"user"}'>
+                    </div>
+                    <button class="btn btn-primary" onclick="submitNewDocument()">Save & Index</button>
+                </div>
             </div>
 
-            <div id="resultsList">
-                <p class="text-muted">Search results will appear here...</p>
+            <!-- Existing search panel and results -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Search Vectors</h5>
+                    <div class="input-group mb-3">
+                        <input id="queryInput" type="text" class="form-control" placeholder="Search vectors...">
+                        <button onclick="performSearch()" class="btn btn-success">Search</button>
+                    </div>
+
+                    <div id="resultsList">
+                        <p class="text-muted">Search results will appear here...</p>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- 3D viewport column -->
         <div class="col-md-8 p-4">
             <div id="canvas-container">
                 <div class="node-count">Nodes: <span id="count">0</span></div>
@@ -163,6 +184,44 @@
                 <span class="badge bg-info mt-2">Similarity Score: ${score}</span>
             </div>`;
         }).join('');
+    }
+
+    // --- DOCUMENT SUBMISSION ---
+
+    async function submitNewDocument() {
+        const id = document.getElementById('newDocId').value.trim();
+        const content = document.getElementById('newDocContent').value.trim();
+        const metaText = document.getElementById('newDocMeta').value.trim();
+        let meta = undefined;
+        if (metaText) {
+            try { meta = JSON.parse(metaText); } catch { alert("MetaData must be valid JSON."); return; }
+        }
+        if (!id || !content) { alert("Id and Content are required."); return; }
+
+        try {
+            const res = await fetch(`${API_URL}/documents`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, content, metaData: meta })
+            });
+            if (!res.ok) { throw new Error(await res.text()); }
+
+            // Refresh map and optionally re-run the current search
+            await fetchInitialMap();
+
+            // Clear form
+            document.getElementById('newDocId').value = '';
+            document.getElementById('newDocContent').value = '';
+            document.getElementById('newDocMeta').value = '';
+
+            // If there is a query in the input, re-search
+            if (document.getElementById('queryInput')?.value?.trim()) {
+                await performSearch();
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Failed to add document.");
+        }
     }
 
     window.onload = init3D;
