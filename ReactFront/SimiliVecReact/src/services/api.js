@@ -16,7 +16,7 @@ export const vectorApi = {
     },
 
     addDocument: async (doc) => {
-        const response = await axios.post(`${API_URL}/documents', doc`);
+        const response = await axios.post(`${API_URL}/documents`, doc);
         return response.data;
     }
 }

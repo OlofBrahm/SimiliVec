@@ -6,6 +6,7 @@ import { Enviroment } from './components/Scene'
 import { VectorNode } from './components/VectorNode'
 import {QueryNode} from './components/QueryNode'
 import {PopoutSearch} from './components/PopoutSearch'
+import { PopoutMenu } from './components/PopoutMenu'
 import './App.css'
 
 
@@ -15,6 +16,7 @@ export default function App() {
 
   const [nodes, setNodes] = useState([]);
   const [mode, setMode] = useState('standard');
+  const [selectedNode, setSelectedNode] = useState(null);
 
   //Fetch API
   useEffect(() => {
@@ -52,14 +54,36 @@ export default function App() {
     }
   }
 
+  const handleDocument = async (newDocument) => {
+    try{
+      await vectorApi.addDocument(newDocument);
+      console.log("Added document:",  newDocument.id)
+      const updatedNodes = await vectorApi.getNodes();
+      const nodesArray = Object.values(updatedNodes);
+      setNodes(nodesArray);
+    }catch (error){
+      console.log("ERROR OCCURD", error);
+    }
+  }
+
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+
+      {selectedNode && 
+        <div className="node-info" style={infoBoxStyle}> 
+        <button onClick={() => setSelectedNode(null)} style={{ float: 'right' }}>x</button>
+        <h3>Node Details</h3>
+        <p><strong>ID:</strong> {selectedNode.id}</p>
+        <p><strong>Content:</strong> {selectedNode.content}</p>
+        </div>
+    
+      }
       <div className="controls" style={{ 
         position: 'absolute', 
         zIndex: 1, 
-        bottom: 20, 
-        right: 20}}>
+        top: 20, 
+        left: 20}}>
         <select onChange={(e) => setMode(e.target.value)}>
           <option value="standard">Standard</option>
           <option value="nebula">Nebula</option>
@@ -69,11 +93,12 @@ export default function App() {
 
       <div className="Search"style={{
         position: 'absolute',
-        top: 20,
+        bottom: 20,
         left: 20,
         zIndex: 10
       }}>
         <PopoutSearch onSearch={handleSearch}/>
+        <PopoutMenu onSave={handleDocument}/>
       </div>
       <Canvas camera={{ position: [10, 10, 10] }}>
         <Enviroment mode={mode} />
@@ -81,7 +106,9 @@ export default function App() {
         {nodes.map((node) => (
           <VectorNode
             key={node.id}
+            node={node}
             position={node.reducedVector}
+            onSelect={setSelectedNode}
           />
         ))}
 
@@ -94,5 +121,17 @@ export default function App() {
       </Canvas>
     </div>
   )
+}
+
+const infoBoxStyle = {
+  position: 'absolute',
+  top: '20px',
+  right: '20px',
+  background: '#222',
+  color: 'white',
+  padding: '15px',
+  borderRadious: '8px',
+  zIndex: 100,
+  maxWidth: '300px'
 }
 

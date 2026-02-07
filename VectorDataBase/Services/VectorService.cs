@@ -36,6 +36,7 @@ public sealed class VectorService : IVectorService
         _pcaConverter = pcaConverter;
 
         _documentStorage = _dataLoader.LoadAllDocuments().ToDictionary(doc => doc.Id, doc => doc);
+        IndexDocument();
     }
 
 
@@ -46,6 +47,18 @@ public sealed class VectorService : IVectorService
     public Task<Dictionary<int, PCANode>> GetPCANodes()
     {
         var nodes = _pcaConverter.ConvertToPCA(_dataIndex.Nodes);
+        foreach(var node in nodes.Values)
+        {
+            if(_indexToDocumentMap.TryGetValue(node.Id, out var docId))
+            {
+                node.DocumentId = docId;
+
+                if(_documentStorage.TryGetValue(docId, out var doc))
+                {
+                    node.Content = doc.Content;
+                }
+            }
+        }
         return Task.FromResult(nodes);
     }
 

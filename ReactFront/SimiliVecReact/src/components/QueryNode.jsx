@@ -9,10 +9,13 @@ export function QueryNode({ position }) {
             onPointerOver={() => setHover(true)}
             onPointerOut={() => setHover(false)}>
 
-            <sphereGeometry args={[0.1, 16, 16]}/>
+            <sphereGeometry args={[0.1, 16, 4]}/>
             <meshStandardMaterial
-            color={hovered ? 'darkgreen' : 'green'}
+            color={'#0011ff'}
             //emissive={hovered ? 'red' : 'black'}
+            transparent={true}
+            wireframe={true}
+            opacity={50}
             emissiveIntensity={0.5}
             />
         </mesh>

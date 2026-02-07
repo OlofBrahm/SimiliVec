@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export function VectorNode({ position, color = 'orange', label }) {
+export function VectorNode({ position, color = 'orange', node, onSelect }) {
     const[hovered, setHover] = useState(false);
 
     return (
@@ -8,6 +8,10 @@ export function VectorNode({ position, color = 'orange', label }) {
             position={position}
             onPointerOver={() => setHover(true)}
             onPointerOut={() => setHover(false)}
+            onClick={(e) => {
+                e.stopPropagation();
+                onSelect(node);
+            }}
         >
             <sphereGeometry args={[0.05, 16, 10]}/>
             <meshStandardMaterial
