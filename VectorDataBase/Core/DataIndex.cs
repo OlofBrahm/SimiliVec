@@ -51,11 +51,11 @@ public class DataIndex : IDataIndex
     /// <param name="newNode"></param>
     private void InitializeFirstNode(HnswNode newNode)
     {
-        newNode.level = 0;
+        newNode.Level = 0;
         newNode.Neighbors = new List<int>[1];
         newNode.Neighbors[0] = new List<int>(MaxNeighbours);
-        Nodes.Add(newNode.id, newNode);
-        EntryPointId = newNode.id;
+        Nodes.Add(newNode.Id, newNode);
+        EntryPointId = newNode.Id;
         MaxLevel = 0;
     }
 
@@ -69,7 +69,7 @@ public class DataIndex : IDataIndex
     {
         // Calculate and assign level
         int newNodeLevel = HNSWUtils.GetRandomLevel(InverseLogM, random);
-        newNode.level = newNodeLevel;
+        newNode.Level = newNodeLevel;
 
         // Initialize neighbor lists for each level up to the new node's level
         newNode.Neighbors = new List<int>[newNodeLevel + 1];
@@ -77,7 +77,7 @@ public class DataIndex : IDataIndex
         {
             newNode.Neighbors[level] = new List<int>(MaxNeighbours);
         }
-        Nodes.Add(newNode.id, newNode);
+        Nodes.Add(newNode.Id, newNode);
         return newNodeLevel;
     }
 
@@ -131,7 +131,7 @@ public class DataIndex : IDataIndex
             foreach (int neighborId in neighborsToConnect)
             {
                 HnswNode neighborNode = Nodes[neighborId];
-                neighborNode.Neighbors[level].Add(newNode.id);
+                neighborNode.Neighbors[level].Add(newNode.Id);
 
                 if (neighborNode.Neighbors[level].Count > MaxNeighbours)
                 {
@@ -153,10 +153,10 @@ public class DataIndex : IDataIndex
     /// <param name="newNode"></param>
     private void UpdateMaxState(HnswNode newNode)
     {
-        if (newNode.level > MaxLevel)
+        if (newNode.Level > MaxLevel)
         {
-            MaxLevel = newNode.level;
-            EntryPointId = newNode.id;
+            MaxLevel = newNode.Level;
+            EntryPointId = newNode.Id;
         }
     }
     

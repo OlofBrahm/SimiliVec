@@ -43,13 +43,12 @@ catch (Exception ex)
     Console.WriteLine($"Pre-startup error indexing documents: {ex.Message}");
     Console.WriteLine($"Stack trace: {ex.StackTrace}");
 }
-
+app.UseCors(MyAllowSpecificOrigins);
 if(app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors(MyAllowSpecificOrigins);
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

@@ -5,9 +5,9 @@ namespace VectorDataBase.Core;
 
 public class HnswNode
 {
-    public int id { get; set; }
+    public int Id { get; set; }
     public float[] Vector { get; init; } = Array.Empty<float>();
-    public int level { get; set; }
+    public int Level { get; set; }
     public List<int>[] Neighbors { get; set; } = Array.Empty<List<int>>();
 
 }

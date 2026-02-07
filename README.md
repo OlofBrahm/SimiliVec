@@ -13,7 +13,7 @@
 
 * **Embedding Model:** Uses the **E5 transformer model** for generating high-quality vector representations.
 * **Indexing Structure:** Implements the **Hierarchical Navigable Small World (HNSW)** graph for efficient approximate nearest neighbor search.
-
+* **PCA Convertion:** Implements PCA Conversion for visualization of the HNSW index.
 ---
 
 ## Key Features

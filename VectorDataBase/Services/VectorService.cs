@@ -74,7 +74,7 @@ public sealed class VectorService : IVectorService
 
                 var vector = _embeddingModel.GetEmbeddings(chunkText);
                 var nodeId = NextId();
-                var node = new HnswNode { id = nodeId, Vector = vector };
+                var node = new HnswNode { Id = nodeId, Vector = vector };
 
                 _dataIndex.Insert(node, _random);
                 _indexToDocumentMap[nodeId] = document.Id;
@@ -90,8 +90,8 @@ public sealed class VectorService : IVectorService
     /// </summary>
     /// <param name="query"></param>
     /// <param name="k"></param>
-    /// <returns></returns>
-    public  Task<SearchRespone> Search(string query, int k = 5)
+    /// <returns>SearchResponse</returns>
+    public  Task<SearchResponse> Search(string query, int k = 5)
     {
         var queryVector = _embeddingModel.GetEmbeddings(query);
         var query3D = _pcaConverter.Transform(queryVector);
@@ -128,7 +128,7 @@ public sealed class VectorService : IVectorService
         foreach (var h in hits)
             if (seen.Add(h.DocumentId)) orderedDistinctDocs.Add(h.Document);
 
-        var response = new SearchRespone
+        var response = new SearchResponse
         {
             QueryPosition = query3D,
             Documents = orderedDistinctDocs,
@@ -160,7 +160,7 @@ public sealed class VectorService : IVectorService
             if (string.IsNullOrWhiteSpace(chunkText)) continue;
             var vector = _embeddingModel.GetEmbeddings(chunkText);
             var nodeId = NextId();
-            var node = new HnswNode { id = nodeId, Vector = vector };
+            var node = new HnswNode { Id = nodeId, Vector = vector };
             _dataIndex.Insert(node, _random);
             _indexToDocumentMap[nodeId] = doc.Id;
         }
@@ -175,7 +175,7 @@ public class SearchHit
     public DocumentModel Document { get; set; } = default!;
 }
 
-public class SearchRespone
+public class SearchResponse
 {
     public float[] QueryPosition { get; set; } = Array.Empty<float>();
     public List<DocumentModel> Documents { get; set; } = new();

@@ -34,7 +34,7 @@ public class PCAConversion
         if (nodes == null) throw new ArgumentNullException(nameof(nodes));
         if (nodes.Count == 0) throw new InvalidOperationException("No vectors to train PCA.");
         
-        var data = nodes.Values.Select(n => new VectorData { Id = n.id, Features = n.Vector }).ToList();
+        var data = nodes.Values.Select(n => new VectorData { Id = n.Id, Features = n.Vector }).ToList();
 
         if (data.Any(d => d.Features.Length != EmbeddingDim))
             throw new InvalidOperationException($"All vectors must have length {EmbeddingDim}.");
