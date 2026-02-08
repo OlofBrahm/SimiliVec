@@ -4,7 +4,7 @@ export function Enviroment({ mode })
 {
     return(
         <>
-        <ambientLight intensity={8.5}/>
+        <ambientLight intensity={5.5}/>
         <pointLight position={[10,10,10]} intensity={1.5}/>
 
         {mode === 'standard' && <Grid infiniteGrid fadeDistance={50} sectionColor={"#444"}/>}

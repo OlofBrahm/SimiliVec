@@ -15,8 +15,8 @@ export function VectorNode({ position, color = 'orange', node, onSelect }) {
         >
             <sphereGeometry args={[0.05, 16, 10]}/>
             <meshStandardMaterial
-            color={hovered ? 'hotpink' : color}
-            emissive={hovered ? 'hotpink' : 'black'}
+            color={hovered ? 'gold' : color}
+            //emissive={hovered ? 'gold' : 'black'}
             emissiveIntensity={0.5}
             />
         </mesh>
