@@ -1,11 +1,8 @@
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.OnnxRuntime;
-using Microsoft.VisualBasic;
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using VectorDataBase.Interfaces;
 
 namespace VectorDataBase.Embedding;
@@ -93,7 +90,7 @@ public class EmbeddingModel : IEmbeddingModel
     /// <param name="sequenceLength"></param>
     /// <param name="embeddingDimension"></param>
     /// <returns></returns>
-    public float[] MeanPool(float[] tokenEmbeddings, int sequenceLength, int embeddingDimension)
+    private static float[] MeanPool(float[] tokenEmbeddings, int sequenceLength, int embeddingDimension)
     {
         float[] pooledVector = new float[embeddingDimension];
         for (int j = 0; j < embeddingDimension; j++)

@@ -1,11 +1,6 @@
-using Microsoft.ML;
-using Microsoft.ML.Data;
 using Microsoft.ML.Tokenizers;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design.Serialization;
 using System.Linq;
-using System.Security.Cryptography;
 namespace VectorDataBase.Embedding;
 
 /// <summary>

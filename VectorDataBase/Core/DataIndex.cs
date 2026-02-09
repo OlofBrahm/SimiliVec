@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Microsoft.ML.Transforms.Text;
 using VectorDataBase.Interfaces;
 
 namespace VectorDataBase.Core;
@@ -205,16 +207,15 @@ public class DataIndex : IDataIndex
         var sortedCandidates = candidates.Select(id => new
         {
             Id = id,
-            Distance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, Nodes[id].Vector)
+            Distance = GetDistance(queryVector, Nodes[id].Vector)
         })
         .OrderBy(x => x.Distance)
         .ToList();
 
-        //Select neighbors ensuring diversity
         List<int> selectedNeighbors = new List<int>();
         HashSet<int> selectedSet = new HashSet<int>();
 
-        //First pass: select diverse neighbors
+        // Select diverse neighbors
         foreach (var candidate in sortedCandidates)
         {
             if (selectedNeighbors.Count >= maxConnections)
@@ -226,7 +227,7 @@ public class DataIndex : IDataIndex
             //Check diversity against already selected neighbors
             foreach (int selectedId in selectedNeighbors)
             {
-                float distanceBetween = 1.0f - HNSWUtils.CosineSimilarity(Nodes[candidate.Id].Vector, Nodes[selectedId].Vector);
+                float distanceBetween = GetDistance(Nodes[candidate.Id].Vector, Nodes[selectedId].Vector);
                 if (distanceBetween < candidate.Distance)
                 {
                     isDiverse = false;
@@ -240,7 +241,7 @@ public class DataIndex : IDataIndex
                 selectedSet.Add(candidate.Id);
             }
         }
-
+        //Fill remaining slots
         if (selectedNeighbors.Count < maxConnections)
         {
             foreach (var candidate in sortedCandidates)
@@ -316,72 +317,92 @@ public class DataIndex : IDataIndex
     {
         ef = Math.Max(1, ef);
 
-        var candidateQueue = new SortedDictionary<float, List<int>>();
-        var bestDistances = new SortedDictionary<float, List<int>>();
+        // Candidates: Min-priority queue to explore the nodes closest to the query first.
+        var candidateQueue = new PriorityQueue<int, float>();
+        
+        // bestResults: A Max-prio queue to track the best 'ef' results found.
+        // Stores distances in negative values because PriorityQueue is a min-heap.
+        // This allows us to quickly Dequeue the furthest node when we find a better one.
+        var bestResults = new PriorityQueue<int, float>();
+
+        // Track nodes we have already visited to prevent infinite loops and redundant work.
         var visitedSet = new HashSet<int>();
 
-        if (!Nodes.TryGetValue(entryId, out var entryNode))
+        if(!Nodes.TryGetValue(entryId, out var entryNode))
+        {
             return new List<int>();
+        }
 
-        float entryDistance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, entryNode.Vector);
-
-        candidateQueue[entryDistance] = new List<int> { entryId };
-        bestDistances[entryDistance] = new List<int> { entryId };
+        // Initialize search with the entry point
+        float entryDist = GetDistance(queryVector, entryNode.Vector);
+        candidateQueue.Enqueue(entryId, entryDist);
+        bestResults.Enqueue(entryId, -entryDist);
         visitedSet.Add(entryId);
-
-        int bestCount = 1;
 
         while (candidateQueue.Count > 0)
         {
-            float currentBestDistance = candidateQueue.Keys.First();
-            var bucket = candidateQueue[currentBestDistance];
-            int currentBestId = bucket[0];
-            bucket.RemoveAt(0);
-            if (bucket.Count == 0) candidateQueue.Remove(currentBestDistance);
+            // Get the nearest candidate that hasn't been explored yet
+            candidateQueue.TryPeek(out int currentId, out float currentDist);
+            candidateQueue.Dequeue();
 
-            float worstDistanceInResults = bestDistances.Keys.Last();
+            // Get the current worst/furthest distance in our top-K results
+            bestResults.TryPeek(out _, out float worstDistNeg);
+            float worstDist = -worstDistNeg;
 
-            if (currentBestDistance > worstDistanceInResults && bestCount >= ef)
-                break;
+            // If the current closest candidate is already further than our worst result
+            // and we have enough results, no better results can be found. 
+            if(currentDist > worstDist && bestResults.Count >= ef) break;
 
-            var currentNode = Nodes[currentBestId];
+            var currentNode = Nodes[currentId];
 
-            if (layer < currentNode.Neighbors.Length)
+            // Ensure that the node has connections at this specific HNSW layer.
+            if(layer >= currentNode.Neighbors.Length) continue;
+
+            foreach(int neighborId in currentNode.Neighbors[layer])
             {
-                var neighborsAtLevel = currentNode.Neighbors[layer];
-                foreach (int neighborId in neighborsAtLevel)
+                // Only process neighbours we haven't seen in this search
+                if (visitedSet.Add(neighborId))
                 {
-                    if (visitedSet.Add(neighborId))
+                    float neighborDist = GetDistance(queryVector, Nodes[neighborId].Vector);
+
+                    // If this neighbor is closer than our worst result
+                    // or if we haven't reached the required 'ef' count
+                    if(bestResults.Count < ef || neighborDist < worstDist)
                     {
-                        var neighborNode = Nodes[neighborId];
-                        float neighborDistance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, neighborNode.Vector);
+                        candidateQueue.Enqueue(neighborId, neighborDist);
+                        bestResults.Enqueue(neighborId, -neighborDist);
 
-                        if (bestCount < ef || neighborDistance < worstDistanceInResults)
+                        // Maintain the size of the result set to exactly 'ef'
+                        if(bestResults.Count > ef)
                         {
-                            if (!candidateQueue.TryGetValue(neighborDistance, out var cqBucket))
-                                candidateQueue[neighborDistance] = cqBucket = new List<int>();
-                            cqBucket.Add(neighborId);
-
-                            if (!bestDistances.TryGetValue(neighborDistance, out var bdBucket))
-                                bestDistances[neighborDistance] = bdBucket = new List<int>();
-                            bdBucket.Add(neighborId);
-                            bestCount++;
-
-                            if (bestCount > ef)
-                            {
-                                float lastKey = bestDistances.Keys.Last();
-                                var lastBucket = bestDistances[lastKey];
-                                lastBucket.RemoveAt(lastBucket.Count - 1);
-                                if (lastBucket.Count == 0)
-                                    bestDistances.Remove(lastKey);
-                                bestCount--;
-                            }
+                            bestResults.Dequeue();
                         }
+
+                        // Update worstDist for the next check
+                        bestResults.TryPeek(out _, out worstDistNeg);
+                        worstDist = -worstDistNeg;
                     }
                 }
             }
         }
 
-        return GetCandidatesFromQueue(bestDistances, ef);
+        return ExtractResults(bestResults);
     }
+
+    private List<int> ExtractResults(PriorityQueue<int, float> queue)
+    {
+        var results = new List<int>(queue.Count);
+        while (queue.Count > 0) results.Add(queue.Dequeue());
+        results.Reverse();
+        return results;
+    }
+
+    /// <summary>
+    /// Calculates distance between two vectors. 1 - Cosine Similarity
+    /// </summary>
+    /// <param name="v1"></param>
+    /// <param name="v2"></param>
+    /// <returns></returns>
+    private float GetDistance(float[] v1, float[] v2) => 1.0f - HNSWUtils.CosineSimilarity(v1, v2);
+
 }
