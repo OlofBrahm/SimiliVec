@@ -85,7 +85,7 @@ public sealed class VectorService : IVectorService
             {
                 if (string.IsNullOrWhiteSpace(chunkText)) continue; // avoid zero vectors
 
-                var vector = _embeddingModel.GetEmbeddings(chunkText);
+                var vector = _embeddingModel.GetEmbeddings(chunkText, isQuery: false);
                 var nodeId = NextId();
                 var node = new HnswNode { Id = nodeId, Vector = vector };
 
@@ -106,7 +106,7 @@ public sealed class VectorService : IVectorService
     /// <returns>SearchResponse</returns>
     public  Task<SearchResponse> Search(string query, int k = 5)
     {
-        var queryVector = _embeddingModel.GetEmbeddings(query);
+        var queryVector = _embeddingModel.GetEmbeddings(query, isQuery: true);
         var query3D = _pcaConverter.Transform(queryVector);
 
         var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, k);
@@ -130,6 +130,7 @@ public sealed class VectorService : IVectorService
                     Similarity = sim,
                     Distance = dist,
                     Document = doc
+
                 });
             }
         }
@@ -166,12 +167,13 @@ public sealed class VectorService : IVectorService
         if (!indexChunks) return;
 
         // Chunk, embed, and index
-        const int maxChunkSize = 500;
-        var chunks = SimpleTextChunker.Chunk(doc.Content, maxChunkSize);
+        const int maxChars = 1500;
+        var chunks = SimpleTextChunker.Chunk(doc.Content, maxChars);
         foreach (var chunkText in chunks)
         {
             if (string.IsNullOrWhiteSpace(chunkText)) continue;
-            var vector = _embeddingModel.GetEmbeddings(chunkText);
+
+            var vector = _embeddingModel.GetEmbeddings(chunkText, isQuery: false);
             var nodeId = NextId();
             var node = new HnswNode { Id = nodeId, Vector = vector };
             _dataIndex.Insert(node, _random);

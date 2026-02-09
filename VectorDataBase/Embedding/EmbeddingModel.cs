@@ -71,9 +71,9 @@ public class EmbeddingModel : IEmbeddingModel
     /// </summary>
     /// <param name="text"></param>
     /// <returns></returns>
-    public float[] GetEmbeddings(string text)
+    public float[] GetEmbeddings(string text, bool isQuery)
     {
-        var (tokenIds, tokenTypeIds, attentionMask) = _tokenizer.Encode(text);
+        var (tokenIds, tokenTypeIds, attentionMask) = _tokenizer.Encode(text, isQuery);
         var input = new InputData { 
             Inputids = tokenIds,
             TokenTypeIds = tokenTypeIds,

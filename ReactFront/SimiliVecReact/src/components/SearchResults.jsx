@@ -1,7 +1,9 @@
 import { Line } from "three";
 
 export function SearchResults({ results, onSelect, onClose }) {
-    if (!results || results.Length === 0) return null;
+    if (!results || results.length === 0) return null;
+
+
 
     return (
         <div style={containerStyle}>
@@ -14,17 +16,17 @@ export function SearchResults({ results, onSelect, onClose }) {
                     <div
                         key={hit.nodeId}
                         style={itemStyle}
-                        onClick={() => onSelect(hit.document)}
+                        onClick={() => onSelect(hit)}
                         onMouseEnter={(e) => (e.currentTarget.style.background = '#333')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
                         <div style={{ fontSize: '0.75rem', color: '#aaa' }}>
                             <span style={simBadge}>
-                                {Math.round(hit.similarity * 100)}% Match
+                                {percentFromSimilarity(hit.similarity)}% Match
                             </span>
                             <span style={{ color: '#666' }}> Dist: {hit.distance.toFixed(3)}</span>
                         </div>
-                        <div style={contentStyle}>{hit.document.content}</div>
+                        <div style={contentStyle}>{hit.document?.content}</div>
                     </div>
                 ))
                 }
@@ -32,6 +34,11 @@ export function SearchResults({ results, onSelect, onClose }) {
             </div>
         </div>
     );
+}
+function percentFromSimilarity(sim) {
+  const min = 0.7, max = 1.0
+  const clamped = Math.max(min, Math.min(max, Number(sim) || min))
+  return Math.round(((clamped - min) / (max - min)) * 100)
 }
 
 const containerStyle = {

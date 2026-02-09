@@ -40,17 +40,16 @@ export default function App() {
   const handleSearch = async (queryText) => {
     try {
       const data = await vectorApi.search(queryText);
-      console.log("Search Results", data.queryPosition)
 
       const pos = data.queryPosition;
       if (pos) {
-        console.log("Found position:", pos)
         setQueryPosition(pos);
       } else {
         console.error("the API returned data but 'queryPosition' was missing")
       }
 
       if (data.results) {
+        const sorted = [...data.results].sort((a, b) => (b.similarity ?? 0))
         setSearchResults(data.results);
       }
       //CAN UPDATE NODES HERE BUT SHOULD WE?
@@ -77,7 +76,14 @@ export default function App() {
 
       <SearchResults
         results={searchResults}
-        onSelect={setSelectedNode}
+        onSelect={(hit) => {
+          const node = nodes.find(n => n.id === hit.nodeId || n.documentId === hit.documentId)
+          if (node) {
+            setSelectedNode(node)
+          } else {
+            setSelectedNode({ id: hit.documentId ?? `node:${hit.nodeId}`, content: hit.document?.content ?? '' })
+          }
+        }}
         onClose={() => setSearchResults([])}
       />
 

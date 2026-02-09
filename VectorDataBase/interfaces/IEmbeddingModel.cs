@@ -7,6 +7,6 @@ public interface IEmbeddingModel
     /// </summary>
     /// <param name="text"></param>
     /// <returns></returns>
-    float[] GetEmbeddings(string text);
+    float[] GetEmbeddings(string text, bool isQuery = true);
 
 }
