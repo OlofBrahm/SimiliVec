@@ -1,5 +1,4 @@
 import React,{useState, useEffect, useRef} from "react";
-import { contain } from "three/src/extras/TextureUtils.js";
 
 export const PopoutSearch = ({ onSearch }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -39,11 +38,11 @@ export const PopoutSearch = ({ onSearch }) => {
 };
 
 const navStyle = {
-    positsion: 'absolute',
+    position: 'absolute',
     background: '#222',
     padding: '15px',
     borderRadius: '8px',
-    top: '40px',
+    bottom: '40px',
     color: 'white',
     display: 'flex',
     flexDirection: 'coloumn',
