@@ -8,3 +8,10 @@ MLModels/
 *.exe
 *.dll
 *.pdb
+env/
+.venv/
+__pycache__/
+venv/
+**/venv/
+**/.venv/
+**/__pycache__/
