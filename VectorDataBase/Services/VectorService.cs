@@ -10,6 +10,9 @@ using VectorDataBase.Utils;
 using System.Threading.Tasks;
 using VectorDataBase.PCA;
 using System.Text.Json;
+using VectorDataBase.UMAP;
+using System.Runtime.CompilerServices;
+using System.ComponentModel.DataAnnotations;
 
 namespace VectorDataBase.Services;
 
@@ -20,6 +23,7 @@ public sealed class VectorService : IVectorService
     private readonly PCAConversion _pcaConverter;
     private readonly Dictionary<string, DocumentModel> _documentStorage = new();
     private readonly Dictionary<int, string> _indexToDocumentMap = new Dictionary<int, string>();
+    private readonly UmapConversion _umapConverter;
     private int _currentId = 0;
     private int NextId() => Interlocked.Increment(ref _currentId);
     private readonly Random _random = Random.Shared;
@@ -28,17 +32,35 @@ public sealed class VectorService : IVectorService
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "SimiliVec", "documents.json");
 
-    public VectorService(IDataIndex dataIndex, IEmbeddingModel embeddingModel, IDataLoader dataLoader, PCAConversion pcaConverter)
+    public VectorService(IDataIndex dataIndex, IEmbeddingModel embeddingModel, IDataLoader dataLoader, PCAConversion pcaConverter, UmapConversion umapConverter)
     {
         _dataIndex = dataIndex;
         _embeddingModel = embeddingModel;
         _dataLoader = dataLoader;
         _pcaConverter = pcaConverter;
+        _umapConverter = umapConverter;
 
         _documentStorage = _dataLoader.LoadAllDocuments().ToDictionary(doc => doc.Id, doc => doc);
         IndexDocument();
     }
+     
 
+    public async Task<List<UmapNode>> GetUmapNodes()
+    {
+        //Fixed node order
+        var nodesList = _dataIndex.Nodes.Values.ToList();
+
+        var (indices, distances) = _dataIndex.KnnMatrix(15);
+
+        var coords = await _umapConverter.GetUmapProjectionAsync(indices, distances);
+        return nodesList.Select((node, i) => new UmapNode
+        {
+            Id = node.Id,
+            X = coords[i][0],
+            Y = coords[i][1],
+            Content = _documentStorage[_indexToDocumentMap[node.Id]].Content
+        }).ToList(); //Can remake so that it is stored in a list from the start to avoid the ToList overhead.
+    }
 
     /// <summary>
     /// Return the HNSW Nodes in the data index

@@ -391,6 +391,12 @@ public class DataIndex : IDataIndex
     {
         var nodesList = Nodes.Values.ToList();
         var nodeCount = nodesList.Count;
+        
+        var idToInternalIndex = new Dictionary<int, int>();
+        for(int i = 0; i < nodeCount; i++)
+        {
+            idToInternalIndex[nodesList[i].Id] = i;
+        }
 
         int[][] allIndices = new int[nodeCount][];
         float[][] allDistances = new float[nodeCount][];
@@ -411,7 +417,7 @@ public class DataIndex : IDataIndex
                 int neighborId = neighborIds[j];
                 if (neighborId == nodesList[i].Id) continue; // skip self
 
-                rowIndicies[found] = neighborId;
+                rowIndicies[found] = idToInternalIndex[neighborId];
                 rowDistances[found] = GetDistance(queryVector, Nodes[neighborId].Vector);
                 found++;
             }

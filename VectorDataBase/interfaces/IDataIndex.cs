@@ -22,4 +22,11 @@ public interface IDataIndex
     /// <param name="efSearch"></param>
     /// <returns></returns>
     List<int> FindNearestNeighbors(float[] queryVector, int k, int? efSearch = null);
+
+    /// <summary>
+    /// Generates a KNN-Matrix
+    /// </summary>
+    /// <param name="k"></param>
+    /// <returns></returns>
+    (int[][], float[][]) KnnMatrix(int k);
 }

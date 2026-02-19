@@ -12,4 +12,5 @@ public interface IVectorService
     IReadOnlyDictionary<string, DocumentModel> GetDocuments();
     Task<Dictionary<int, PCANode>> GetPCANodes();
     Task AddDocument(DocumentModel doc, bool indexChunks = true);
+    Task<List<UmapNode>> GetUmapNodes();
 }

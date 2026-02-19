@@ -54,19 +54,8 @@ public static class HNSWUtils
         return (int)(-Math.Log(random.NextDouble()) * inverseLogM);
     }
 
-    public static (float[], float[]) KnnMatrix(Dictionary<int, HnswNode> nodes)
-    {
-        var nodesList = nodes.Values.ToList();
-        var nodeCount = nodesList.Count;
 
-        int[][] allIndicies = new int[nodeCount][];
-        float[][] allDistances = new float[nodeCount][];
-
-        Parallel.For(0, nodeCount, i =>
-        {
-            var queryVector = nodesList[i].Vector;
-        })
-    }
+    
 
     
 }

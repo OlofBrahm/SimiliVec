@@ -10,7 +10,7 @@ public class VectorController : ControllerBase
     {
         _vectorService = vectorService;
     }
-    
+
     [HttpPost("index")]
     public async Task<IActionResult> IndexDocument()
     {
@@ -27,7 +27,7 @@ public class VectorController : ControllerBase
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] string query, [FromQuery] int k = 5)
     {
-        if(string.IsNullOrEmpty(query))
+        if (string.IsNullOrEmpty(query))
         {
             return BadRequest("Search query can not be empty");
         }
@@ -35,11 +35,40 @@ public class VectorController : ControllerBase
         var results = await _vectorService.Search(query, k);
         return Ok(results);
     }
-    [HttpGet("nodes")]
-    public async Task<IActionResult> GetNodes()
+    [HttpGet("nodes/pca")]
+    public async Task<IActionResult> GetPcaNodes()
     {
-        var nodes = await _vectorService.GetPCANodes();
-        return Ok(nodes);
+        try
+        {
+            var nodes = await _vectorService.GetPCANodes();
+            return Ok(nodes);
+        }
+        catch(Exception ex)
+        {
+            return StatusCode(500, $"PCA ERROR: {ex.Message}");
+        }
+
+    }
+    [HttpGet("nodes/umap")]
+    public async Task<IActionResult> GetUmapNodes()
+    {
+        try
+        {
+            var nodes = await _vectorService.GetUmapNodes();
+            if(nodes == null || nodes.Count == 0)
+            {
+                return Ok(new List<object>()); //Returns a empty list instead of throwing error
+            }
+            return Ok(nodes);
+        }
+        catch(InvalidOperationException ex)
+        {
+            return BadRequest($"Cannot perfom PCA: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(503, $"UMAP Service unavailible: {ex.Message}");
+        }
     }
     [HttpPost("documents")]
     public async Task<IActionResult> AddDocument([FromBody] DocumentModel input)
