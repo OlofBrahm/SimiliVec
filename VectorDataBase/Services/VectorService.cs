@@ -13,6 +13,8 @@ using System.Text.Json;
 using VectorDataBase.UMAP;
 using System.Runtime.CompilerServices;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata.Ecma335;
+using Microsoft.VisualBasic;
 
 namespace VectorDataBase.Services;
 
@@ -43,7 +45,7 @@ public sealed class VectorService : IVectorService
         _documentStorage = _dataLoader.LoadAllDocuments().ToDictionary(doc => doc.Id, doc => doc);
         IndexDocument();
     }
-     
+
 
     public async Task<List<UmapNode>> GetUmapNodes()
     {
@@ -53,14 +55,28 @@ public sealed class VectorService : IVectorService
         var (indices, distances) = _dataIndex.KnnMatrix(15);
 
         var coords = await _umapConverter.GetUmapProjectionAsync(indices, distances);
-        return nodesList.Select((node, i) => new UmapNode
+        return nodesList.Select((node, i) =>
         {
-            Id = node.Id,
-            X = coords[i][0],
-            Y = coords[i][1],
-            Content = _documentStorage[_indexToDocumentMap[node.Id]].Content
+            _indexToDocumentMap.TryGetValue(node.Id, out var docId);
+
+            string content = string.Empty;
+            if (docId != null && _documentStorage.TryGetValue(docId, out var doc))
+            {
+                content = doc.Content;
+            }
+
+            return new UmapNode
+            {
+                Id = node.Id,
+                DocumentId = docId ?? "Unknown",
+                X = coords[i][0],
+                Y = coords[i][1],
+                Content = content
+            };
         }).ToList(); //Can remake so that it is stored in a list from the start to avoid the ToList overhead.
     }
+
+
 
     /// <summary>
     /// Return the HNSW Nodes in the data index
@@ -69,13 +85,13 @@ public sealed class VectorService : IVectorService
     public Task<Dictionary<int, PCANode>> GetPCANodes()
     {
         var nodes = _pcaConverter.ConvertToPCA(_dataIndex.Nodes);
-        foreach(var node in nodes.Values)
+        foreach (var node in nodes.Values)
         {
-            if(_indexToDocumentMap.TryGetValue(node.Id, out var docId))
+            if (_indexToDocumentMap.TryGetValue(node.Id, out var docId))
             {
                 node.DocumentId = docId;
 
-                if(_documentStorage.TryGetValue(docId, out var doc))
+                if (_documentStorage.TryGetValue(docId, out var doc))
                 {
                     node.Content = doc.Content;
                 }
@@ -126,7 +142,7 @@ public sealed class VectorService : IVectorService
     /// <param name="query"></param>
     /// <param name="k"></param>
     /// <returns>SearchResponse</returns>
-    public  Task<SearchResponse> Search(string query, int k = 5)
+    public Task<SearchResponse> Search(string query, int k = 5)
     {
         var queryVector = _embeddingModel.GetEmbeddings(query, isQuery: true);
         var query3D = _pcaConverter.Transform(queryVector);

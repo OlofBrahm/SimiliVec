@@ -5,6 +5,7 @@ using VectorDataBase.Embedding;
 using VectorDataBase.Core;
 using VectorDataBase;
 using VectorDataBase.PCA;
+using VectorDataBase.UMAP;
 
 namespace VectorDataBase.Services;
 
@@ -27,6 +28,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDataLoader, DataLoader>();
 
         services.AddSingleton<PCAConversion>();
+        services.AddSingleton<UmapConversion>();
 
         // VectorService holds state and coordinates index/embeddings
         services.AddSingleton<IVectorService, VectorService>();
