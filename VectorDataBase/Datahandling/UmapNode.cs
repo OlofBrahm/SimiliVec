@@ -1,3 +1,5 @@
+using System;
+
 namespace VectorDataBase.Datahandling
 {
     public class UmapNode
@@ -5,9 +7,7 @@ namespace VectorDataBase.Datahandling
         public int Id { get; set; }
         public required string DocumentId { get; set; }
         public required string Content { get; set; }
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Z { get; set; }
+        public float[] ReducedVector { get; set; } = Array.Empty<float>();
     }
 }
 

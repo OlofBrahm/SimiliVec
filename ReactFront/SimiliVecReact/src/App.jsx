@@ -19,40 +19,52 @@ export default function App() {
   const [mode, setMode] = useState('standard');
   const [selectedNode, setSelectedNode] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
-
-  //Fetch API
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const data = await vectorApi.getNodes();
-        console.log("Response Type:", typeof data);
-        console.log("Keys in Dictionary:", Object.keys(data).length);
-        setNodes(Object.values(data));
-      } catch (error) {
-        console.error("The API is unreachable. Check the port");
-      }
-    };
-    loadInitialData();
-  }, []);
-
-
+  const [algo, setAlgo] = useState('pca');
   const [queryPosition, setQueryPosition] = useState(null);
+
+  const loadNodes = async () => {
+    try {
+      let data;
+      if(algo === 'umap'){
+        data = await vectorApi.getUMAPNodes();
+      } else {
+        data = await vectorApi.getPCANodes();
+      }
+
+      const nodesArray = Array.isArray(data) ? data : Object.values(data);
+      const normalizedNodes = nodesArray.map(n => ({
+        ...n,
+        displayPos: n.reducedVector || [n.x, n.y, n.z || 0]
+      }));
+      setNodes(normalizedNodes);
+    } catch (error) {
+      console.error("Failed to fetch nodes:", error);
+    }
+  };
+
+
+  useEffect(() => {
+    loadNodes();
+  }, [algo]);
+
   const handleSearch = async (queryText) => {
     try {
-      const data = await vectorApi.search(queryText);
+      const data = algo === 'umap'
+        ? await vectorApi.searchUmap(queryText)
+        : await vectorApi.search(queryText);
 
       const pos = data.queryPosition;
+      console.log("Query position received:", pos);
+      
       if (pos) {
-        setQueryPosition(pos);
+        setQueryPosition(Array.isArray(pos) ? pos : [pos[0] ?? 0, pos[1] ?? 0, pos[2] ?? 0]);
       } else {
-        console.error("the API returned data but 'queryPosition' was missing")
+        console.error("API returned data but 'queryPosition' was missing");
       }
 
       if (data.results) {
-        const sorted = [...data.results].sort((a, b) => (b.similarity ?? 0))
         setSearchResults(data.results);
       }
-      //CAN UPDATE NODES HERE BUT SHOULD WE?
     } catch (error) {
       console.error("Search failed:", error);
     }
@@ -61,12 +73,10 @@ export default function App() {
   const handleDocument = async (newDocument) => {
     try {
       await vectorApi.addDocument(newDocument);
-      console.log("Added document:", newDocument.id)
-      const updatedNodes = await vectorApi.getNodes();
-      const nodesArray = Object.values(updatedNodes);
-      setNodes(nodesArray);
+      console.log("Added document:", newDocument.id);
+      await loadNodes();
     } catch (error) {
-      console.log("ERROR OCCURRED", error);
+      console.error("Failed to add document:", error);
     }
   }
 
@@ -77,32 +87,39 @@ export default function App() {
       <SearchResults
         results={searchResults}
         onSelect={(hit) => {
-          const node = nodes.find(n => n.id === hit.nodeId || n.documentId === hit.documentId)
+          const node = nodes.find(n => n.id === hit.nodeId || n.documentId === hit.documentId);
           if (node) {
-            setSelectedNode(node)
+            setSelectedNode(node);
           } else {
-            setSelectedNode({ id: hit.documentId ?? `node:${hit.nodeId}`, content: hit.document?.content ?? '' })
+            setSelectedNode({ 
+              id: hit.documentId ?? `node:${hit.nodeId}`, 
+              content: hit.document?.content ?? '' 
+            });
           }
         }}
         onClose={() => setSearchResults([])}
       />
 
-      {selectedNode &&
+      {selectedNode && (
         <div className="node-info" style={infoBoxStyle}>
           <button onClick={() => setSelectedNode(null)} style={closeButtonStyle}>×</button>
           <h3>Node Details</h3>
           <p><strong>ID:</strong> {selectedNode.id}</p>
           <p><strong>Content:</strong> {selectedNode.content}</p>
         </div>
+      )}
 
-      }
       <div className="controls" style={{
         position: 'absolute',
         zIndex: 1,
         top: 20,
         left: 20
       }}>
-        <select onChange={(e) => setMode(e.target.value)}>
+        <select value={algo} onChange={(e) => setAlgo(e.target.value)}>
+          <option value="pca">PCA (Linear)</option>
+          <option value="umap">UMAP (clusters)</option>
+        </select>
+        <select value={mode} onChange={(e) => setMode(e.target.value)}>
           <option value="standard">Standard</option>
           <option value="nebula">Nebula</option>
           <option value="blueprint">BluePrint</option>
@@ -122,21 +139,17 @@ export default function App() {
         <Enviroment mode={mode} />
 
         {nodes.map((node) => (
-
           <VectorNode
-            key={node.id}
+            key={`${algo}-${node.id}`}
             node={node}
-            position={node.reducedVector}
+            position={node.displayPos}
             onSelect={setSelectedNode}
           />
         ))}
 
-        {queryPosition && (
-          <QueryNode position={queryPosition} color="yellow" />
-        )}
+        {queryPosition && <QueryNode position={queryPosition} />}
 
         <OrbitControls makeDefault />
-
       </Canvas>
     </div>
   )

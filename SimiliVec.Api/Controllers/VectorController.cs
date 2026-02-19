@@ -84,6 +84,16 @@ public class VectorController : ControllerBase
         };
 
         await _vectorService.AddDocument(doc, indexChunks: true);
+        await GetUmapNodes();
         return Ok(new { id = doc.Id });
+    }
+    [HttpPost("search/umap")]
+    public async Task<IActionResult> SearchUmap([FromBody] string query, [FromQuery] int k = 5)
+    {
+        if (string.IsNullOrEmpty(query))
+            return BadRequest("Search query cannot be empty");
+
+        var results = await _vectorService.SearchUmap(query, k);
+        return Ok(results);
     }
 }

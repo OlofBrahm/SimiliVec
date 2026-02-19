@@ -26,6 +26,8 @@ public sealed class VectorService : IVectorService
     private readonly Dictionary<string, DocumentModel> _documentStorage = new();
     private readonly Dictionary<int, string> _indexToDocumentMap = new Dictionary<int, string>();
     private readonly UmapConversion _umapConverter;
+    private (float meanX, float meanY, float meanZ, float stdX, float stdY, float stdZ)? _umapNormParams;
+    private (float meanX, float meanY, float meanZ, float stdX, float stdY, float stdZ)? _pcaNormParams;
     private int _currentId = 0;
     private int NextId() => Interlocked.Increment(ref _currentId);
     private readonly Random _random = Random.Shared;
@@ -49,31 +51,77 @@ public sealed class VectorService : IVectorService
 
     public async Task<List<UmapNode>> GetUmapNodes()
     {
-        //Fixed node order
         var nodesList = _dataIndex.Nodes.Values.ToList();
+        var vectors = nodesList.Select(n => n.Vector).ToArray();
 
-        var (indices, distances) = _dataIndex.KnnMatrix(15);
+        var coords = await _umapConverter.FitAndProjectAsync(vectors);
 
-        var coords = await _umapConverter.GetUmapProjectionAsync(indices, distances);
+        var normalized = Normalize3D(coords, out var normParams);
+        _umapNormParams = normParams;
+
         return nodesList.Select((node, i) =>
         {
-            _indexToDocumentMap.TryGetValue(node.Id, out var docId);
+            var docId = _indexToDocumentMap.TryGetValue(node.Id, out var id) ? id : null;
+            var vec = new[] { normalized[i].x, normalized[i].y, normalized[i].z };
 
-            string content = string.Empty;
             if (docId != null && _documentStorage.TryGetValue(docId, out var doc))
             {
-                content = doc.Content;
+                return new UmapNode
+                {
+                    Id = node.Id,
+                    DocumentId = doc.Id,
+                    Content = doc.Content,
+                    ReducedVector = vec
+                };
             }
 
             return new UmapNode
             {
                 Id = node.Id,
-                DocumentId = docId ?? "Unknown",
-                X = coords[i][0],
-                Y = coords[i][1],
-                Content = content
+                DocumentId = "",
+                Content = "",
+                ReducedVector = vec
             };
-        }).ToList(); //Can remake so that it is stored in a list from the start to avoid the ToList overhead.
+        }).ToList();
+    }
+
+    private static List<(float x, float y, float z)> Normalize3D(
+        List<List<float>> coords,
+        out (float meanX, float meanY, float meanZ, float stdX, float stdY, float stdZ) normParams)
+    {
+        var points = coords.Select(c =>
+        {
+            var x = c.Count > 0 ? c[0] : 0f;
+            var y = c.Count > 1 ? c[1] : 0f;
+            var z = c.Count > 2 ? c[2] : 0f;
+            return (x, y, z);
+        }).ToList();
+
+        if (points.Count == 0)
+        {
+            normParams = (0, 0, 0, 1, 1, 1);
+            return points;
+        }
+
+        var meanX = points.Average(p => p.x);
+        var meanY = points.Average(p => p.y);
+        var meanZ = points.Average(p => p.z);
+
+        var stdX = (float)Math.Sqrt(points.Average(p => Math.Pow(p.x - meanX, 2)));
+        var stdY = (float)Math.Sqrt(points.Average(p => Math.Pow(p.y - meanY, 2)));
+        var stdZ = (float)Math.Sqrt(points.Average(p => Math.Pow(p.z - meanZ, 2)));
+
+        stdX = stdX == 0 ? 1 : stdX;
+        stdY = stdY == 0 ? 1 : stdY;
+        stdZ = stdZ == 0 ? 1 : stdZ;
+
+        normParams = (meanX, meanY, meanZ, stdX, stdY, stdZ);
+
+        return points.Select(p => (
+            (float)((p.x - meanX) / stdX),
+            (float)((p.y - meanY) / stdY),
+            (float)((p.z - meanZ) / stdZ)
+        )).ToList();
     }
 
 
@@ -85,6 +133,10 @@ public sealed class VectorService : IVectorService
     public Task<Dictionary<int, PCANode>> GetPCANodes()
     {
         var nodes = _pcaConverter.ConvertToPCA(_dataIndex.Nodes);
+
+        NormalizePcaNodes(nodes, out var normParams);
+        _pcaNormParams = normParams;
+
         foreach (var node in nodes.Values)
         {
             if (_indexToDocumentMap.TryGetValue(node.Id, out var docId))
@@ -98,6 +150,47 @@ public sealed class VectorService : IVectorService
             }
         }
         return Task.FromResult(nodes);
+    }
+
+    private static void NormalizePcaNodes(
+        Dictionary<int, PCANode> nodes,
+        out (float meanX, float meanY, float meanZ, float stdX, float stdY, float stdZ) normParams)
+    {
+        if (nodes.Count == 0)
+        {
+            normParams = (0, 0, 0, 1, 1, 1);
+            return;
+        }
+
+        var xs = nodes.Values.Select(n => n.ReducedVector.Length > 0 ? n.ReducedVector[0] : 0f).ToList();
+        var ys = nodes.Values.Select(n => n.ReducedVector.Length > 1 ? n.ReducedVector[1] : 0f).ToList();
+        var zs = nodes.Values.Select(n => n.ReducedVector.Length > 2 ? n.ReducedVector[2] : 0f).ToList();
+
+        var meanX = xs.Average();
+        var meanY = ys.Average();
+        var meanZ = zs.Average();
+
+        var stdX = (float)Math.Sqrt(xs.Average(v => Math.Pow(v - meanX, 2)));
+        var stdY = (float)Math.Sqrt(ys.Average(v => Math.Pow(v - meanY, 2)));
+        var stdZ = (float)Math.Sqrt(zs.Average(v => Math.Pow(v - meanZ, 2)));
+
+        stdX = stdX == 0 ? 1 : stdX;
+        stdY = stdY == 0 ? 1 : stdY;
+        stdZ = stdZ == 0 ? 1 : stdZ;
+
+        normParams = (meanX, meanY, meanZ, stdX, stdY, stdZ);
+
+        foreach (var n in nodes.Values)
+        {
+            var vec = n.ReducedVector;
+            if (vec.Length < 3) Array.Resize(ref vec, 3);
+
+            vec[0] = (float)((vec[0] - meanX) / stdX);
+            vec[1] = (float)((vec[1] - meanY) / stdY);
+            vec[2] = (float)((vec[2] - meanZ) / stdZ);
+
+            n.ReducedVector = vec;
+        }
     }
 
     /// <summary>
@@ -145,7 +238,23 @@ public sealed class VectorService : IVectorService
     public Task<SearchResponse> Search(string query, int k = 5)
     {
         var queryVector = _embeddingModel.GetEmbeddings(query, isQuery: true);
-        var query3D = _pcaConverter.Transform(queryVector);
+        var rawQuery3D = _pcaConverter.Transform(queryVector);
+
+        float[] query3D;
+        if (_pcaNormParams.HasValue)
+        {
+            var p = _pcaNormParams.Value;
+            query3D = new float[]
+            {
+                (rawQuery3D[0] - p.meanX) / p.stdX,
+                (rawQuery3D[1] - p.meanY) / p.stdY,
+                (rawQuery3D[2] - p.meanZ) / p.stdZ
+            };
+        }
+        else
+        {
+            query3D = rawQuery3D;
+        }
 
         var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, k);
 
@@ -173,22 +282,22 @@ public sealed class VectorService : IVectorService
             }
         }
 
-        hits = hits.OrderByDescending(h => h.Similarity).ToList();
+        // Group by document, take best chunk per document
+        var bestHits = hits
+            .GroupBy(h => h.DocumentId)
+            .Select(g => g.OrderByDescending(h => h.Similarity).First())
+            .OrderByDescending(h => h.Similarity)
+            .ToList();
 
-        var seen = new HashSet<string>();
-        var orderedDistinctDocs = new List<DocumentModel>();
-        foreach (var h in hits)
-            if (seen.Add(h.DocumentId)) orderedDistinctDocs.Add(h.Document);
+        var orderedDistinctDocs = bestHits.Select(h => h.Document).ToList();
 
-        var response = new SearchResponse
+        return Task.FromResult(new SearchResponse
         {
             QueryPosition = query3D,
             Documents = orderedDistinctDocs,
-            ResultNodeIds = hits.Select(h => h.NodeId).ToList(),
-            Results = hits
-        };
-
-        return Task.FromResult(response);
+            ResultNodeIds = bestHits.Select(h => h.NodeId).ToList(),
+            Results = bestHits
+        });
     }
 
     public async Task AddDocument(DocumentModel doc, bool indexChunks = true)
@@ -217,6 +326,70 @@ public sealed class VectorService : IVectorService
             _dataIndex.Insert(node, _random);
             _indexToDocumentMap[nodeId] = doc.Id;
         }
+    }
+
+    public async Task<SearchResponse> SearchUmap(string query, int k = 5)
+    {
+        var queryVector = _embeddingModel.GetEmbeddings(query, isQuery: true);
+        var rawQuery3D = await _umapConverter.TransformQueryAsync(queryVector);
+
+        float[] query3D;
+        if (_umapNormParams.HasValue)
+        {
+            var p = _umapNormParams.Value;
+            query3D = new float[]
+            {
+                (rawQuery3D[0] - p.meanX) / p.stdX,
+                (rawQuery3D[1] - p.meanY) / p.stdY,
+                (rawQuery3D[2] - p.meanZ) / p.stdZ
+            };
+        }
+        else
+        {
+            query3D = rawQuery3D;
+        }
+
+        var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, k);
+
+        var hits = new List<SearchHit>(nearestIds.Count);
+        foreach (var id in nearestIds)
+        {
+            if (!_dataIndex.Nodes.TryGetValue(id, out var node)) continue;
+
+            float sim = HNSWUtils.CosineSimilarity(queryVector, node.Vector);
+            if (float.IsNaN(sim)) sim = 0f;
+            float dist = 1.0f - sim;
+
+            if (_indexToDocumentMap.TryGetValue(id, out var docId) &&
+                _documentStorage.TryGetValue(docId, out var doc))
+            {
+                hits.Add(new SearchHit
+                {
+                    NodeId = id,
+                    DocumentId = docId,
+                    Similarity = sim,
+                    Distance = dist,
+                    Document = doc
+                });
+            }
+        }
+
+        // Group by document, take best chunk per document
+        var bestHits = hits
+            .GroupBy(h => h.DocumentId)
+            .Select(g => g.OrderByDescending(h => h.Similarity).First())
+            .OrderByDescending(h => h.Similarity)
+            .ToList();
+
+        var orderedDistinctDocs = bestHits.Select(h => h.Document).ToList();
+
+        return new SearchResponse
+        {
+            QueryPosition = query3D,
+            Documents = orderedDistinctDocs,
+            ResultNodeIds = bestHits.Select(h => h.NodeId).ToList(),
+            Results = bestHits
+        };
     }
 }
 public class SearchHit
