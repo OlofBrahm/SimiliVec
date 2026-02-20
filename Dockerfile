@@ -32,8 +32,19 @@ WORKDIR /app
 # Copy published app
 COPY --from=publish /app/publish .
 
-# Copy ML models (IMPORTANT - include the models!)
-COPY VectorDataBase/MLModels/ ./MLModels/
+# Create MLModels directory structure
+RUN mkdir -p ./MLModels/e5-small-v2
+
+# Copy tokenizer files (small files, not LFS)
+COPY VectorDataBase/MLModels/e5-small-v2/tokenizer.json ./MLModels/e5-small-v2/
+COPY VectorDataBase/MLModels/e5-small-v2/tokenizer_config.json ./MLModels/e5-small-v2/
+COPY VectorDataBase/MLModels/e5-small-v2/vocab.txt ./MLModels/e5-small-v2/
+
+# Download the large ONNX model from HuggingFace (bypass Git LFS issue)
+RUN apt-get update && apt-get install -y curl && \
+    curl -L "https://huggingface.co/intfloat/e5-small-v2/resolve/main/onnx/model.onnx" \
+    -o ./MLModels/e5-small-v2/model.onnx && \
+    apt-get remove -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 # Program.cs will read PORT env var at runtime
 # No need to set ASPNETCORE_URLS here
