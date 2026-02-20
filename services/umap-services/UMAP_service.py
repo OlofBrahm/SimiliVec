@@ -5,6 +5,8 @@ import umap
 import numpy as np
 from typing import List
 import warnings
+import os
+import uvicorn
 
 warnings.filterwarnings('ignore', message='n_jobs value.*overridden.*random_state')
 
