@@ -1,25 +1,23 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
-using Microsoft.VisualBasic;
-using System.Text.Json;
 
 namespace VectorDataBase.DimensionalityReduction.UMAP;
 
 public class UmapConversion
 {
     private readonly HttpClient _httpClient;
-    private const string umapUrl = "http://127.0.0.1:8000/project-knn";
-    private const string fitUrl = "http://127.0.0.1:8000/fit-vectors";
-    private const string transformUrl = "http://127.0.0.1:8000/transform-vector";
+    private readonly string _baseUrl;
 
     public UmapConversion()
     {
         _httpClient = new HttpClient();
+        _baseUrl = Environment.GetEnvironmentVariable("UMAP_SERVICE_URL") 
+                   ?? "http://127.0.0.1:8000";
     }
 
     private class UmapRequest
@@ -37,13 +35,15 @@ public class UmapConversion
         [JsonPropertyName("vectors")]
         public float[][]? Vectors { get; set; }
         [JsonPropertyName("n_neighbors")]
-        public int NNeighbors { get; set; } = 15;
+        public int NNeighbors { get; set; } = 10;
         [JsonPropertyName("n_epochs")]
-        public int NEpochs { get; set; } = 200;
+        public int NEpochs { get; set; } = 50;
         [JsonPropertyName("n_components")]
         public int NComponents { get; set; } = 3;
         [JsonPropertyName("random_state")]
         public int RandomState { get; set; } = 42;
+        [JsonPropertyName("min_dist")]
+        public float MinDist { get; set; } = 0.1f;
     }
 
     private class TransformRequest
@@ -75,7 +75,7 @@ public class UmapConversion
 
         try
         {
-            var response = await _httpClient.PostAsJsonAsync(umapUrl, payload);
+            var response = await _httpClient.PostAsJsonAsync($"{_baseUrl}/project-knn", payload);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -97,7 +97,7 @@ public class UmapConversion
     public async Task<List<List<float>>> FitAndProjectAsync(float[][] vectors)
     {
         var req = new FitRequest { Vectors = vectors };
-        var res = await _httpClient.PostAsJsonAsync(fitUrl, req);
+        var res = await _httpClient.PostAsJsonAsync($"{_baseUrl}/fit-vectors", req);
         res.EnsureSuccessStatusCode();
         var body = await res.Content.ReadFromJsonAsync<UmapResponse>();
         return body?.Coordinates ?? new List<List<float>>();
@@ -106,7 +106,7 @@ public class UmapConversion
     public async Task<float[]> TransformQueryAsync(float[] vector)
     {
         var req = new TransformRequest { Vector = vector };
-        var res = await _httpClient.PostAsJsonAsync(transformUrl, req);
+        var res = await _httpClient.PostAsJsonAsync($"{_baseUrl}/transform-vector", req);
         res.EnsureSuccessStatusCode();
         var body = await res.Content.ReadFromJsonAsync<TransformResponse>();
         return body?.Coordinates?.ToArray() ?? new float[3];

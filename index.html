@@ -1,230 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>SimiliVec HNSW Test Bench</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
-    <style>
-        body { background: #121212; color: white; }
-        #canvas-container { width: 100%; height: 500px; background: #000; border-radius: 8px; position: relative; }
-        .sidebar { height: 100vh; overflow-y: auto; border-right: 1px solid #333; padding: 20px; }
-        .card { background: #1e1e1e; color: white; border: 1px solid #333; margin-bottom: 10px; }
-        .node-count { position: absolute; top: 10; right: 10; z-index: 10; background: rgba(0,0,0,0.5); padding: 5px; }
-    </style>
-</head>
-<body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Add Document UI -->
-        <div class="col-4 p-3">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Add Document</h5>
-                    <div class="mb-2">
-                        <label class="form-label">Id</label>
-                        <input id="newDocId" class="form-control" placeholder="CS-101">
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Content</label>
-                        <textarea id="newDocContent" class="form-control" rows="6" placeholder="Your text..."></textarea>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">MetaData (JSON, optional)</label>
-                        <input id="newDocMeta" class="form-control" placeholder='{"source":"user"}'>
-                    </div>
-                    <button class="btn btn-primary" onclick="submitNewDocument()">Save & Index</button>
-                </div>
-            </div>
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 8080
 
-            <!-- Existing search panel and results -->
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Search Vectors</h5>
-                    <div class="input-group mb-3">
-                        <input id="queryInput" type="text" class="form-control" placeholder="Search vectors...">
-                        <button onclick="performSearch()" class="btn btn-success">Search</button>
-                    </div>
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
 
-                    <div id="resultsList">
-                        <p class="text-muted">Search results will appear here...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+# Copy solution and project files
+COPY ["VectorDataBase.sln", "./"]
+COPY ["SimiliVec.Api/SimiliVec.Api.csproj", "SimiliVec.Api/"]
+COPY ["VectorDataBase/VectorDataBase.csproj", "VectorDataBase/"]
 
-        <!-- 3D viewport column -->
-        <div class="col-md-8 p-4">
-            <div id="canvas-container">
-                <div class="node-count">Nodes: <span id="count">0</span></div>
-            </div>
-            <div class="mt-3">
-                <h5>3D Navigation</h5>
-                <p class="small text-muted">Left Click: Rotate | Scroll: Zoom | Right Click: Pan</p>
-            </div>
-        </div>
-    </div>
-</div>
+# Restore dependencies
+RUN dotnet restore "SimiliVec.Api/SimiliVec.Api.csproj"
 
-<script>
-    const API_URL = "http://localhost:5202/api/vector";
-    let scene, camera, renderer, points, queryMarker;
-    let nodeObjects = {};
+# Copy source code
+COPY . .
 
-    // --- 3D SETUP ---
-    function init3D() {
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / 500, 0.1, 1000);
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(document.getElementById('canvas-container').clientWidth, 500);
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
-        
-        const light = new THREE.PointLight(0xffffff, 1, 100);
-        light.position.set(10, 10, 10);
-        scene.add(light);
-        
-        camera.position.z = 5;
-        animate();
-    }
+# Download ML models during build
+WORKDIR /src
+RUN apt-get update && apt-get install -y curl
+RUN mkdir -p VectorDataBase/MLModels/e5-small-v2
+RUN curl -L -o VectorDataBase/MLModels/e5-small-v2/model.onnx \
+    https://huggingface.co/intfloat/e5-small-v2/resolve/main/model.onnx
+RUN curl -L -o VectorDataBase/MLModels/e5-small-v2/vocab.txt \
+    https://huggingface.co/intfloat/e5-small-v2/resolve/main/vocab.txt
+RUN curl -L -o VectorDataBase/MLModels/e5-small-v2/tokenizer.json \
+    https://huggingface.co/intfloat/e5-small-v2/resolve/main/tokenizer.json
+RUN curl -L -o VectorDataBase/MLModels/e5-small-v2/tokenizer_config.json \
+    https://huggingface.co/intfloat/e5-small-v2/resolve/main/tokenizer_config.json
 
-    function animate() {
-        requestAnimationFrame(animate);
-        if (points) points.rotation.y += 0.001;
-        renderer.render(scene, camera);
-    }
+# Build the application
+WORKDIR /src/SimiliVec.Api
+RUN dotnet build "SimiliVec.Api.csproj" -c Release -o /app/build
 
-    // --- API CALLS ---
+FROM build AS publish
+RUN dotnet publish "SimiliVec.Api.csproj" -c Release -o /app/publish
 
-    // 1. Fetch all nodes for the 3D cloud
-    async function fetchInitialMap() {
-        try {
-            // Adjust endpoint if necessary
-            const response = await fetch(`${API_URL}/nodes`); 
-            const nodes = await response.json(); // Dictionary<int, PCANode>
-            
-            renderPointCloud(Object.values(nodes));
-            document.getElementById('count').innerText = Object.keys(nodes).length;
-        } catch (e) { console.error("Map Load Failed", e); }
-    }
-
-    // 2. Perform Vector Search
-    async function performSearch() {
-        const query = document.getElementById('queryInput').value;
-        const k = 5;
-
-        try {
-            const response = await fetch(`${API_URL}/search?k=${k}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(query)
-            });
-            const data = await response.json(); // SearchResponse
-
-            // Use detailed hits with per-query scores
-            displayResults(data.results);
-
-            highlightSearchIn3D(data.queryPosition, data.resultNodeIds);
-        } catch (e) { console.error("Search Failed", e); }
-    }
-
-    // --- RENDERING LOGIC ---
-
-    function renderPointCloud(nodes) {
-        if(points) scene.remove(points);
-
-        const geometry = new THREE.BufferGeometry();
-        const positions = [];
-        const colors = [];
-
-        nodes.forEach(node => {
-            positions.push(node.reducedVector[0], node.reducedVector[1], node.reducedVector[2]);
-            colors.push(0, 0.5, 1); // Default Blue
-        });
-
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-        const material = new THREE.PointsMaterial({ size: 0.05, vertexColors: true });
-        points = new THREE.Points(geometry, material);
-        scene.add(points);
-    }
-
-    function highlightSearchIn3D(queryPos, hitIds) {
-        // Remove old marker
-        if(queryMarker) scene.remove(queryMarker);
-
-        // Add Red Sphere at Search Landing Point
-        const geo = new THREE.SphereGeometry(0.1);
-        const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        queryMarker = new THREE.Mesh(geo, mat);
-        queryMarker.position.set(queryPos[0], queryPos[1], queryPos[2]);
-        scene.add(queryMarker);
-
-        // Move camera to look at the landing point
-        camera.position.set(queryPos[0], queryPos[1], queryPos[2] + 3);
-    }
-
-    function displayResults(hits) {
-        const container = document.getElementById('resultsList');
-        if (!Array.isArray(hits) || hits.length === 0) {
-            container.innerHTML = `<p class="text-muted">No results.</p>`;
-            return;
-        }
-
-        // Optional client-side sort (server already sorts by similarity desc)
-        hits = hits.slice().sort((a, b) => (b.similarity ?? 0) - (a.similarity ?? 0));
-
-        container.innerHTML = hits.map(h => {
-            const doc = h.document || {};
-            const score = typeof h.similarity === 'number' ? h.similarity.toFixed(4) : 'N/A';
-            return `
-            <div class="card p-3">
-                <strong>Doc ID: ${doc.id}</strong>
-                <p class="small mb-0">${(doc.content || '').substring(0, 100)}...</p>
-                <span class="badge bg-info mt-2">Similarity Score: ${score}</span>
-            </div>`;
-        }).join('');
-    }
-
-    // --- DOCUMENT SUBMISSION ---
-
-    async function submitNewDocument() {
-        const id = document.getElementById('newDocId').value.trim();
-        const content = document.getElementById('newDocContent').value.trim();
-        const metaText = document.getElementById('newDocMeta').value.trim();
-        let meta = undefined;
-        if (metaText) {
-            try { meta = JSON.parse(metaText); } catch { alert("MetaData must be valid JSON."); return; }
-        }
-        if (!id || !content) { alert("Id and Content are required."); return; }
-
-        try {
-            const res = await fetch(`${API_URL}/documents`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, content, metaData: meta })
-            });
-            if (!res.ok) { throw new Error(await res.text()); }
-
-            // Refresh map and optionally re-run the current search
-            await fetchInitialMap();
-
-            // Clear form
-            document.getElementById('newDocId').value = '';
-            document.getElementById('newDocContent').value = '';
-            document.getElementById('newDocMeta').value = '';
-
-            // If there is a query in the input, re-search
-            if (document.getElementById('queryInput')?.value?.trim()) {
-                await performSearch();
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Failed to add document.");
-        }
-    }
-
-    window.onload = init3D;
-</script>
-</body>
-</html>
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "SimiliVec.Api.dll"]

@@ -3,18 +3,35 @@ using VectorDataBase.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Railway port support
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins"; 
 
-// Just so you can connect whatever to the api
+// Get frontend URL from environment variable for production CORS
+var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+
+// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          // Allow access from any origin
-                          policy.AllowAnyOrigin() 
-                                .AllowAnyHeader()
-                                .AllowAnyMethod();
+                          if (!string.IsNullOrEmpty(frontendUrl))
+                          {
+                              // Production: specific origin
+                              policy.WithOrigins(frontendUrl)
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod();
+                          }
+                          else
+                          {
+                              // Development: allow any origin
+                              policy.AllowAnyOrigin() 
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod();
+                          }
                       });
 });
 
