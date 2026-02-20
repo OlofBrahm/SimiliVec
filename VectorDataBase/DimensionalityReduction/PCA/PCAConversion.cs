@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using VectorDataBase.Core;
+using VectorDataBase.Models;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using System.Linq;
 
+namespace VectorDataBase.DimensionalityReduction.PCA;
 
-namespace VectorDataBase.PCA;
 public class PCAConversion
 {
     private readonly MLContext _mlContext = new MLContext(seed: 42);
@@ -107,17 +108,3 @@ public class PCAConversion
         public float[] PCAFeatures { get; set; } = Array.Empty<float>();
     }
 }
-
-
-public class PCANode
-{
-    public int Id { get; set; }
-    public float[] ReducedVector { get; set; } = Array.Empty<float>();
-    public string DocumentId {get; set;} = string.Empty;
-    public string Content {get; set;} = string.Empty;
-}
-
-
-
-
-

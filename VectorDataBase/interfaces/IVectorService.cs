@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VectorDataBase.Services;
-using VectorDataBase.Datahandling;
-using VectorDataBase.PCA;
+using VectorDataBase.Models;
+using VectorDataBase.DimensionalityReduction.PCA;
 
 public interface IVectorService
 {

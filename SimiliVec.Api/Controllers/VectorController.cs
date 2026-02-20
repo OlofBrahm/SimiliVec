@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using VectorDataBase.Datahandling;
+using VectorDataBase.Models;
 
 [ApiController]
 [Route("api/[controller]")]

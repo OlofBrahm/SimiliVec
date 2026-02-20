@@ -2,16 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using VectorDataBase.Interfaces;
+using VectorDataBase.Models;
 
-namespace VectorDataBase.Datahandling;
+namespace VectorDataBase.Repositories;
 
 /// <summary>
-/// Class to load data from a text file
+/// Handles loading and saving document data from persistent storage
 /// </summary>
-using System.IO;
-using System.Text.Json;
-
 public class DataLoader : IDataLoader
 {
     private readonly string _dataDirectory;
@@ -25,20 +24,20 @@ public class DataLoader : IDataLoader
 
     public DataLoader()
     {
-        //Appdata folder
+        // Appdata folder
         _dataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         _dataDirectory = Path.Combine(_dataDirectory, "SimiliVec");
-        if(!Directory.Exists(_dataDirectory))
+        if (!Directory.Exists(_dataDirectory))
         {
             Directory.CreateDirectory(_dataDirectory);
         }
         _dataFileName = "documents.json";
         _fullFilePath = Path.Combine(_dataDirectory, _dataFileName);
-        if(!File.Exists(_fullFilePath))
+        if (!File.Exists(_fullFilePath))
         {
             File.Create(_fullFilePath).Close();
             string defaultJstring = "[{}]";
-            File.WriteAllText(_fullFilePath,defaultJstring);
+            File.WriteAllText(_fullFilePath, defaultJstring);
         }
     }
 
@@ -53,7 +52,6 @@ public class DataLoader : IDataLoader
             Directory.CreateDirectory(directory);
         }
     }
-
 
     /// <summary>
     /// Loads data from a text file
@@ -92,8 +90,8 @@ public class DataLoader : IDataLoader
         {
             Console.WriteLine("Failed to write data to file.");
         }
-        
     }
+
     /// <summary>
     /// Loads all documents
     /// </summary>

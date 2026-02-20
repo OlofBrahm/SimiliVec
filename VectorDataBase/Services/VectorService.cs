@@ -1,20 +1,14 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Threading;
 using System.Linq;
 using VectorDataBase.Interfaces;
 using VectorDataBase.Core;
-using VectorDataBase.Datahandling;
+using VectorDataBase.Models;
 using VectorDataBase.Utils;
 using System.Threading.Tasks;
-using VectorDataBase.PCA;
-using System.Text.Json;
-using VectorDataBase.UMAP;
-using System.Runtime.CompilerServices;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.VisualBasic;
+using VectorDataBase.DimensionalityReduction.PCA;
+using VectorDataBase.DimensionalityReduction.UMAP;
+using VectorDataBase.Repositories;
 
 namespace VectorDataBase.Services;
 
@@ -23,28 +17,32 @@ public sealed class VectorService : IVectorService
     private readonly IDataIndex _dataIndex;
     private readonly IEmbeddingModel _embeddingModel;
     private readonly PCAConversion _pcaConverter;
-    private readonly Dictionary<string, DocumentModel> _documentStorage = new();
-    private readonly Dictionary<int, string> _indexToDocumentMap = new Dictionary<int, string>();
     private readonly UmapConversion _umapConverter;
-    private (float meanX, float meanY, float meanZ, float stdX, float stdY, float stdZ)? _umapNormParams;
-    private (float meanX, float meanY, float meanZ, float stdX, float stdY, float stdZ)? _pcaNormParams;
-    private int _currentId = 0;
-    private int NextId() => Interlocked.Increment(ref _currentId);
+    private readonly DocumentRepository _documentRepository;
+    private readonly NodeDocumentMapper _nodeMapper;
+    private readonly CoordinateNormalizer _normalizer;
     private readonly Random _random = Random.Shared;
-    private readonly IDataLoader _dataLoader;
-    private readonly string _docPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "SimiliVec", "documents.json");
 
-    public VectorService(IDataIndex dataIndex, IEmbeddingModel embeddingModel, IDataLoader dataLoader, PCAConversion pcaConverter, UmapConversion umapConverter)
+    private CoordinateNormalizer.NormalizationParams? _umapNormParams;
+    private CoordinateNormalizer.NormalizationParams? _pcaNormParams;
+
+    public VectorService(
+        IDataIndex dataIndex, 
+        IEmbeddingModel embeddingModel, 
+        PCAConversion pcaConverter, 
+        UmapConversion umapConverter,
+        DocumentRepository documentRepository,
+        NodeDocumentMapper nodeMapper,
+        CoordinateNormalizer normalizer)
     {
         _dataIndex = dataIndex;
         _embeddingModel = embeddingModel;
-        _dataLoader = dataLoader;
         _pcaConverter = pcaConverter;
         _umapConverter = umapConverter;
+        _documentRepository = documentRepository;
+        _nodeMapper = nodeMapper;
+        _normalizer = normalizer;
 
-        _documentStorage = _dataLoader.LoadAllDocuments().ToDictionary(doc => doc.Id, doc => doc);
         IndexDocument();
     }
 
@@ -56,15 +54,17 @@ public sealed class VectorService : IVectorService
 
         var coords = await _umapConverter.FitAndProjectAsync(vectors);
 
-        var normalized = Normalize3D(coords, out var normParams);
+        var (normalized, normParams) = _normalizer.Normalize3D(coords);
         _umapNormParams = normParams;
 
         return nodesList.Select((node, i) =>
         {
-            var docId = _indexToDocumentMap.TryGetValue(node.Id, out var id) ? id : null;
             var vec = new[] { normalized[i].x, normalized[i].y, normalized[i].z };
-
-            if (docId != null && _documentStorage.TryGetValue(docId, out var doc))
+            
+            if (_nodeMapper.TryGetDocumentId(node.Id, out var docId) && 
+                docId != null &&
+                _documentRepository.TryGetDocument(docId, out var doc) &&
+                doc != null)
             {
                 return new UmapNode
                 {
@@ -85,47 +85,6 @@ public sealed class VectorService : IVectorService
         }).ToList();
     }
 
-    private static List<(float x, float y, float z)> Normalize3D(
-        List<List<float>> coords,
-        out (float meanX, float meanY, float meanZ, float stdX, float stdY, float stdZ) normParams)
-    {
-        var points = coords.Select(c =>
-        {
-            var x = c.Count > 0 ? c[0] : 0f;
-            var y = c.Count > 1 ? c[1] : 0f;
-            var z = c.Count > 2 ? c[2] : 0f;
-            return (x, y, z);
-        }).ToList();
-
-        if (points.Count == 0)
-        {
-            normParams = (0, 0, 0, 1, 1, 1);
-            return points;
-        }
-
-        var meanX = points.Average(p => p.x);
-        var meanY = points.Average(p => p.y);
-        var meanZ = points.Average(p => p.z);
-
-        var stdX = (float)Math.Sqrt(points.Average(p => Math.Pow(p.x - meanX, 2)));
-        var stdY = (float)Math.Sqrt(points.Average(p => Math.Pow(p.y - meanY, 2)));
-        var stdZ = (float)Math.Sqrt(points.Average(p => Math.Pow(p.z - meanZ, 2)));
-
-        stdX = stdX == 0 ? 1 : stdX;
-        stdY = stdY == 0 ? 1 : stdY;
-        stdZ = stdZ == 0 ? 1 : stdZ;
-
-        normParams = (meanX, meanY, meanZ, stdX, stdY, stdZ);
-
-        return points.Select(p => (
-            (float)((p.x - meanX) / stdX),
-            (float)((p.y - meanY) / stdY),
-            (float)((p.z - meanZ) / stdZ)
-        )).ToList();
-    }
-
-
-
     /// <summary>
     /// Return the HNSW Nodes in the data index
     /// </summary>
@@ -134,16 +93,15 @@ public sealed class VectorService : IVectorService
     {
         var nodes = _pcaConverter.ConvertToPCA(_dataIndex.Nodes);
 
-        NormalizePcaNodes(nodes, out var normParams);
-        _pcaNormParams = normParams;
+        _pcaNormParams = _normalizer.NormalizePcaNodes(nodes);
 
         foreach (var node in nodes.Values)
         {
-            if (_indexToDocumentMap.TryGetValue(node.Id, out var docId))
+            if (_nodeMapper.TryGetDocumentId(node.Id, out var docId) && docId != null)
             {
                 node.DocumentId = docId;
 
-                if (_documentStorage.TryGetValue(docId, out var doc))
+                if (_documentRepository.TryGetDocument(docId, out var doc) && doc != null)
                 {
                     node.Content = doc.Content;
                 }
@@ -152,52 +110,11 @@ public sealed class VectorService : IVectorService
         return Task.FromResult(nodes);
     }
 
-    private static void NormalizePcaNodes(
-        Dictionary<int, PCANode> nodes,
-        out (float meanX, float meanY, float meanZ, float stdX, float stdY, float stdZ) normParams)
-    {
-        if (nodes.Count == 0)
-        {
-            normParams = (0, 0, 0, 1, 1, 1);
-            return;
-        }
-
-        var xs = nodes.Values.Select(n => n.ReducedVector.Length > 0 ? n.ReducedVector[0] : 0f).ToList();
-        var ys = nodes.Values.Select(n => n.ReducedVector.Length > 1 ? n.ReducedVector[1] : 0f).ToList();
-        var zs = nodes.Values.Select(n => n.ReducedVector.Length > 2 ? n.ReducedVector[2] : 0f).ToList();
-
-        var meanX = xs.Average();
-        var meanY = ys.Average();
-        var meanZ = zs.Average();
-
-        var stdX = (float)Math.Sqrt(xs.Average(v => Math.Pow(v - meanX, 2)));
-        var stdY = (float)Math.Sqrt(ys.Average(v => Math.Pow(v - meanY, 2)));
-        var stdZ = (float)Math.Sqrt(zs.Average(v => Math.Pow(v - meanZ, 2)));
-
-        stdX = stdX == 0 ? 1 : stdX;
-        stdY = stdY == 0 ? 1 : stdY;
-        stdZ = stdZ == 0 ? 1 : stdZ;
-
-        normParams = (meanX, meanY, meanZ, stdX, stdY, stdZ);
-
-        foreach (var n in nodes.Values)
-        {
-            var vec = n.ReducedVector;
-            if (vec.Length < 3) Array.Resize(ref vec, 3);
-
-            vec[0] = (float)((vec[0] - meanX) / stdX);
-            vec[1] = (float)((vec[1] - meanY) / stdY);
-            vec[2] = (float)((vec[2] - meanZ) / stdZ);
-
-            n.ReducedVector = vec;
-        }
-    }
-
     /// <summary>
     /// Return the collection of documents in storage
     /// </summary>
     /// <returns></returns>
-    public IReadOnlyDictionary<string, DocumentModel> GetDocuments() => _documentStorage;
+    public IReadOnlyDictionary<string, DocumentModel> GetDocuments() => _documentRepository.GetAllDocuments();
 
 
     /// <summary>
@@ -209,7 +126,7 @@ public sealed class VectorService : IVectorService
         const int maxChunkSize = 500;
         int totalChunks = 0;
 
-        foreach (var document in _documentStorage.Values)
+        foreach (var document in _documentRepository.GetAllDocuments().Values)
         {
             var chunks = SimpleTextChunker.Chunk(document.Content, maxChunkSize);
             foreach (var chunkText in chunks)
@@ -217,11 +134,11 @@ public sealed class VectorService : IVectorService
                 if (string.IsNullOrWhiteSpace(chunkText)) continue; // avoid zero vectors
 
                 var vector = _embeddingModel.GetEmbeddings(chunkText, isQuery: false);
-                var nodeId = NextId();
+                var nodeId = _nodeMapper.NextId();
                 var node = new HnswNode { Id = nodeId, Vector = vector };
 
                 _dataIndex.Insert(node, _random);
-                _indexToDocumentMap[nodeId] = document.Id;
+                _nodeMapper.MapNodeToDocument(nodeId, document.Id);
                 totalChunks++;
             }
         }
@@ -241,15 +158,9 @@ public sealed class VectorService : IVectorService
         var rawQuery3D = _pcaConverter.Transform(queryVector);
 
         float[] query3D;
-        if (_pcaNormParams.HasValue)
+        if (_pcaNormParams != null)
         {
-            var p = _pcaNormParams.Value;
-            query3D = new float[]
-            {
-                (rawQuery3D[0] - p.meanX) / p.stdX,
-                (rawQuery3D[1] - p.meanY) / p.stdY,
-                (rawQuery3D[2] - p.meanZ) / p.stdZ
-            };
+            query3D = _normalizer.ApplyNormalization(rawQuery3D, _pcaNormParams);
         }
         else
         {
@@ -267,8 +178,10 @@ public sealed class VectorService : IVectorService
             if (float.IsNaN(sim)) sim = 0f; // guard against zero vectors
             float dist = 1.0f - sim;
 
-            if (_indexToDocumentMap.TryGetValue(id, out var docId) &&
-                _documentStorage.TryGetValue(docId, out var doc))
+            if (_nodeMapper.TryGetDocumentId(id, out var docId) &&
+                docId != null &&
+                _documentRepository.TryGetDocument(docId, out var doc) &&
+                doc != null)
             {
                 hits.Add(new SearchHit
                 {
@@ -277,7 +190,6 @@ public sealed class VectorService : IVectorService
                     Similarity = sim,
                     Distance = dist,
                     Document = doc
-
                 });
             }
         }
@@ -302,14 +214,8 @@ public sealed class VectorService : IVectorService
 
     public async Task AddDocument(DocumentModel doc, bool indexChunks = true)
     {
-        // Persist in memory
-        _documentStorage[doc.Id] = doc;
-
-        // Write to disk
-        Directory.CreateDirectory(Path.GetDirectoryName(_docPath)!);
-        var allDocs = _documentStorage.Values.ToList();
-        var json = JsonSerializer.Serialize(allDocs, new JsonSerializerOptions { WriteIndented = true });
-        await File.WriteAllTextAsync(_docPath, json);
+        // Persist document
+        await _documentRepository.SaveDocumentAsync(doc);
 
         if (!indexChunks) return;
 
@@ -321,10 +227,10 @@ public sealed class VectorService : IVectorService
             if (string.IsNullOrWhiteSpace(chunkText)) continue;
 
             var vector = _embeddingModel.GetEmbeddings(chunkText, isQuery: false);
-            var nodeId = NextId();
+            var nodeId = _nodeMapper.NextId();
             var node = new HnswNode { Id = nodeId, Vector = vector };
             _dataIndex.Insert(node, _random);
-            _indexToDocumentMap[nodeId] = doc.Id;
+            _nodeMapper.MapNodeToDocument(nodeId, doc.Id);
         }
     }
 
@@ -334,15 +240,9 @@ public sealed class VectorService : IVectorService
         var rawQuery3D = await _umapConverter.TransformQueryAsync(queryVector);
 
         float[] query3D;
-        if (_umapNormParams.HasValue)
+        if (_umapNormParams != null)
         {
-            var p = _umapNormParams.Value;
-            query3D = new float[]
-            {
-                (rawQuery3D[0] - p.meanX) / p.stdX,
-                (rawQuery3D[1] - p.meanY) / p.stdY,
-                (rawQuery3D[2] - p.meanZ) / p.stdZ
-            };
+            query3D = _normalizer.ApplyNormalization(rawQuery3D, _umapNormParams);
         }
         else
         {
@@ -360,8 +260,10 @@ public sealed class VectorService : IVectorService
             if (float.IsNaN(sim)) sim = 0f;
             float dist = 1.0f - sim;
 
-            if (_indexToDocumentMap.TryGetValue(id, out var docId) &&
-                _documentStorage.TryGetValue(docId, out var doc))
+            if (_nodeMapper.TryGetDocumentId(id, out var docId) &&
+                docId != null &&
+                _documentRepository.TryGetDocument(docId, out var doc) &&
+                doc != null)
             {
                 hits.Add(new SearchHit
                 {
@@ -391,21 +293,4 @@ public sealed class VectorService : IVectorService
             Results = bestHits
         };
     }
-}
-public class SearchHit
-{
-    public int NodeId { get; set; }
-    public string DocumentId { get; set; } = string.Empty;
-    public float Distance { get; set; }          // 1 - similarity
-    public float Similarity { get; set; }        // 0..1 cosine similarity
-    public DocumentModel Document { get; set; } = default!;
-}
-
-public class SearchResponse
-{
-    public float[] QueryPosition { get; set; } = Array.Empty<float>();
-    public List<DocumentModel> Documents { get; set; } = new();
-    public List<int> ResultNodeIds { get; set; } = new();
-    // New: detailed hits including distances
-    public List<SearchHit> Results { get; set; } = new();
 }
