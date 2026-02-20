@@ -3,9 +3,12 @@ using VectorDataBase.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Railway port support
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+// Configure Railway port support - only override if PORT env var is explicitly set
+var portEnvVar = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(portEnvVar))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{portEnvVar}");
+}
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins"; 
 

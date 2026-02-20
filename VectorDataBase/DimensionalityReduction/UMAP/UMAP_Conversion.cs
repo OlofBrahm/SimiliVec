@@ -75,6 +75,7 @@ public class UmapConversion
 
         try
         {
+            Console.WriteLine("Calling UMAP API");
             var response = await _httpClient.PostAsJsonAsync($"{_baseUrl}/project-knn", payload);
 
             if (!response.IsSuccessStatusCode)
