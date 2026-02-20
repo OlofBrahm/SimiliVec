@@ -16,6 +16,7 @@ public class DataLoader : IDataLoader
     private readonly string _dataDirectory;
     private readonly string _dataFileName;
     private readonly string _fullFilePath;
+    private readonly string _sampleDataPath;
 
     private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
@@ -24,19 +25,26 @@ public class DataLoader : IDataLoader
 
     public DataLoader()
     {
-        // Appdata folder
+        _dataFileName = "documents.json";
+        
+        // Try to find bundled sample data first (for production/demo)
+        var appDirectory = AppContext.BaseDirectory;
+        _sampleDataPath = Path.Combine(appDirectory, "SampleData", _dataFileName);
+        
+        // AppData folder for user-saved documents
         _dataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         _dataDirectory = Path.Combine(_dataDirectory, "SimiliVec");
         if (!Directory.Exists(_dataDirectory))
         {
             Directory.CreateDirectory(_dataDirectory);
         }
-        _dataFileName = "documents.json";
         _fullFilePath = Path.Combine(_dataDirectory, _dataFileName);
+        
+        // Initialize user data file if it doesn't exist
         if (!File.Exists(_fullFilePath))
         {
             File.Create(_fullFilePath).Close();
-            string defaultJstring = "[{}]";
+            string defaultJstring = "[]";
             File.WriteAllText(_fullFilePath, defaultJstring);
         }
     }
@@ -61,6 +69,17 @@ public class DataLoader : IDataLoader
     {
         EnsureDirectoryExists(_fullFilePath);
         IEnumerable<DocumentModel> data = new List<DocumentModel>();
+        
+        // Try loading from bundled sample data first
+        if (File.Exists(_sampleDataPath))
+        {
+            var jsonData = File.ReadAllText(_sampleDataPath);
+            data = JsonSerializer.Deserialize<IEnumerable<DocumentModel>>(jsonData, _jsonOptions) ?? new List<DocumentModel>();
+            Console.WriteLine($"LoadDataFromFile: Loaded {data.Count()} documents from bundled sample data");
+            return data;
+        }
+        
+        // Fall back to user AppData folder
         if (File.Exists(_fullFilePath))
         {
             var jsonData = File.ReadAllText(_fullFilePath);
@@ -69,7 +88,7 @@ public class DataLoader : IDataLoader
         }
         else
         {
-            Console.WriteLine($"LoadDataFromFile: File not found at {_fullFilePath}");
+            Console.WriteLine($"LoadDataFromFile: No data found, using empty list");
         }
         return data;
     }

@@ -1,0 +1,52 @@
+[
+  {
+    "Id": 1,
+    "Title": "Introduction to Machine Learning",
+    "Content": "Machine learning is a subset of artificial intelligence that enables computers to learn from data without being explicitly programmed. It uses algorithms to identify patterns and make decisions."
+  },
+  {
+    "Id": 2,
+    "Title": "Vector Databases Explained",
+    "Content": "Vector databases store high-dimensional vectors representing data embeddings. They enable efficient similarity search using algorithms like HNSW (Hierarchical Navigable Small World) for nearest neighbor queries."
+  },
+  {
+    "Id": 3,
+    "Title": "Understanding Neural Networks",
+    "Content": "Neural networks are computational models inspired by the human brain. They consist of layers of interconnected nodes that process information and learn patterns through training."
+  },
+  {
+    "Id": 4,
+    "Title": "Natural Language Processing Basics",
+    "Content": "Natural Language Processing (NLP) is a field of AI focused on enabling computers to understand, interpret, and generate human language. Modern NLP uses transformer models and attention mechanisms."
+  },
+  {
+    "Id": 5,
+    "Title": "Dimensionality Reduction Techniques",
+    "Content": "Dimensionality reduction methods like PCA and UMAP help visualize high-dimensional data by projecting it into lower dimensions while preserving important relationships and structure."
+  },
+  {
+    "Id": 6,
+    "Title": "Semantic Search Technology",
+    "Content": "Semantic search goes beyond keyword matching by understanding the meaning and context of queries. It uses embeddings to find conceptually similar content even with different wording."
+  },
+  {
+    "Id": 7,
+    "Title": "Graph Algorithms in Data Science",
+    "Content": "Graph algorithms are essential for analyzing networks and relationships. They include shortest path algorithms, community detection, and graph traversal methods used in social networks and recommendation systems."
+  },
+  {
+    "Id": 8,
+    "Title": "Deep Learning Architectures",
+    "Content": "Deep learning uses neural networks with multiple layers to learn hierarchical representations. Popular architectures include CNNs for images, RNNs for sequences, and Transformers for language tasks."
+  },
+  {
+    "Id": 9,
+    "Title": "Data Visualization Principles",
+    "Content": "Effective data visualization communicates insights clearly through charts, graphs, and interactive plots. It helps identify patterns, outliers, and trends that might be hidden in raw data."
+  },
+  {
+    "Id": 10,
+    "Title": "Clustering Algorithms",
+    "Content": "Clustering groups similar data points together without labels. Common methods include K-means, DBSCAN, and hierarchical clustering, used for customer segmentation and anomaly detection."
+  }
+]

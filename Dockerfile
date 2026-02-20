@@ -46,7 +46,12 @@ RUN apt-get update && apt-get install -y curl && \
     -o ./MLModels/e5-small-v2/model.onnx && \
     apt-get remove -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
+# Copy sample data for demo/production
+COPY VectorDataBase/SampleData/ ./SampleData/
+
 # Program.cs will read PORT env var at runtime
 # No need to set ASPNETCORE_URLS here
+
+ENTRYPOINT ["dotnet", "SimiliVec.Api.dll"]
 
 ENTRYPOINT ["dotnet", "SimiliVec.Api.dll"]
