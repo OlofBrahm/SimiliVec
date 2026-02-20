@@ -2,7 +2,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 8080
-ENV PORT=8080
 
 # Stage 2: Build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
@@ -36,7 +35,7 @@ COPY --from=publish /app/publish .
 # Copy ML models (IMPORTANT - include the models!)
 COPY VectorDataBase/MLModels/ ./MLModels/
 
-# Railway uses PORT environment variable
-ENV ASPNETCORE_URLS=http://+:${PORT}
+# Program.cs will read PORT env var at runtime
+# No need to set ASPNETCORE_URLS here
 
 ENTRYPOINT ["dotnet", "SimiliVec.Api.dll"]
