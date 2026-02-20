@@ -42,7 +42,7 @@ COPY VectorDataBase/MLModels/e5-small-v2/vocab.txt ./MLModels/e5-small-v2/
 
 # Download the large ONNX model from HuggingFace (bypass Git LFS issue)
 RUN apt-get update && apt-get install -y curl && \
-    curl -L "https://huggingface.co/intfloat/e5-small-v2/resolve/main/onnx/model.onnx" \
+    curl -L "https://huggingface.co/intfloat/e5-small-v2/resolve/main/model.onnx" \
     -o ./MLModels/e5-small-v2/model.onnx && \
     apt-get remove -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
