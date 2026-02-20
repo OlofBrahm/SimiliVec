@@ -48,5 +48,505 @@
     "Id": "10",
     "Title": "Clustering Algorithms",
     "Content": "Clustering groups similar data points together without labels. Common methods include K-means, DBSCAN, and hierarchical clustering, used for customer segmentation and anomaly detection."
+  },
+  {
+    "Id": "11",
+    "Title": "Reinforcement Learning Fundamentals",
+    "Content": "Reinforcement learning trains agents to make decisions by rewarding desired behaviors. It uses concepts like policies, value functions, and Q-learning to optimize sequential decision-making tasks."
+  },
+  {
+    "Id": "12",
+    "Title": "Transfer Learning Techniques",
+    "Content": "Transfer learning leverages pre-trained models on new tasks, reducing training time and data requirements. It's particularly effective in computer vision and NLP where large models can be fine-tuned."
+  },
+  {
+    "Id": "13",
+    "Title": "Attention Mechanisms in AI",
+    "Content": "Attention mechanisms allow models to focus on relevant parts of input data. They're crucial in transformers and enable models to weigh the importance of different tokens in sequences."
+  },
+  {
+    "Id": "14",
+    "Title": "Regularization in Machine Learning",
+    "Content": "Regularization techniques like L1, L2, and dropout prevent overfitting by adding constraints to model complexity. They help models generalize better to unseen data."
+  },
+  {
+    "Id": "15",
+    "Title": "Gradient Descent Optimization",
+    "Content": "Gradient descent iteratively adjusts model parameters to minimize loss functions. Variants like Adam, SGD, and RMSprop offer different trade-offs in convergence speed and stability."
+  },
+  {
+    "Id": "16",
+    "Title": "Convolutional Neural Networks",
+    "Content": "CNNs excel at processing grid-like data such as images. They use convolutional layers to automatically learn spatial hierarchies of features without manual feature engineering."
+  },
+  {
+    "Id": "17",
+    "Title": "Recurrent Neural Networks",
+    "Content": "RNNs process sequential data by maintaining hidden states across time steps. LSTM and GRU variants address vanishing gradient problems and enable learning long-term dependencies."
+  },
+  {
+    "Id": "18",
+    "Title": "Transformer Architecture",
+    "Content": "Transformers revolutionized NLP with self-attention mechanisms that process entire sequences in parallel. They power models like BERT, GPT, and T5 for various language tasks."
+  },
+  {
+    "Id": "19",
+    "Title": "Embedding Spaces and Representations",
+    "Content": "Embeddings map discrete objects into continuous vector spaces where semantic similarity is reflected by geometric proximity. Word2Vec, GloVe, and learned embeddings enable neural networks to process text."
+  },
+  {
+    "Id": "20",
+    "Title": "Cross-Validation Strategies",
+    "Content": "Cross-validation assesses model performance by splitting data into training and validation sets multiple times. K-fold and stratified methods provide more reliable performance estimates."
+  },
+  {
+    "Id": "21",
+    "Title": "Feature Engineering Best Practices",
+    "Content": "Feature engineering transforms raw data into informative inputs for models. Techniques include normalization, encoding categorical variables, creating interaction terms, and domain-specific transformations."
+  },
+  {
+    "Id": "22",
+    "Title": "Ensemble Learning Methods",
+    "Content": "Ensemble methods combine multiple models to improve predictions. Bagging, boosting, and stacking leverage diverse models to reduce variance and bias in machine learning systems."
+  },
+  {
+    "Id": "23",
+    "Title": "Anomaly Detection Techniques",
+    "Content": "Anomaly detection identifies unusual patterns that deviate from expected behavior. Methods include statistical tests, isolation forests, autoencoders, and one-class SVMs for fraud detection and monitoring."
+  },
+  {
+    "Id": "24",
+    "Title": "Time Series Forecasting",
+    "Content": "Time series models predict future values based on historical patterns. ARIMA, Prophet, and LSTM networks capture trends, seasonality, and complex temporal dependencies in sequential data."
+  },
+  {
+    "Id": "25",
+    "Title": "Bias and Fairness in AI",
+    "Content": "AI systems can perpetuate or amplify biases present in training data. Fairness metrics, debiasing techniques, and diverse datasets are essential for building equitable machine learning systems."
+  },
+  {
+    "Id": "26",
+    "Title": "Explainable AI Methods",
+    "Content": "Explainable AI makes model decisions interpretable through techniques like SHAP values, LIME, attention visualization, and feature importance analysis to build trust and enable debugging."
+  },
+  {
+    "Id": "27",
+    "Title": "Hyperparameter Tuning",
+    "Content": "Hyperparameter optimization finds the best configuration for model training. Grid search, random search, and Bayesian optimization systematically explore the hyperparameter space for optimal performance."
+  },
+  {
+    "Id": "28",
+    "Title": "Data Augmentation Strategies",
+    "Content": "Data augmentation artificially expands training datasets through transformations like rotations, crops, and noise injection. It improves model robustness and reduces overfitting when data is limited."
+  },
+  {
+    "Id": "29",
+    "Title": "Batch Normalization",
+    "Content": "Batch normalization normalizes layer inputs during training to stabilize learning and accelerate convergence. It reduces internal covariate shift and allows higher learning rates in deep networks."
+  },
+  {
+    "Id": "30",
+    "Title": "Generative Adversarial Networks",
+    "Content": "GANs consist of generator and discriminator networks that compete to produce realistic synthetic data. They excel at image generation, style transfer, and data augmentation tasks."
+  },
+  {
+    "Id": "31",
+    "Title": "Autoencoders and Representations",
+    "Content": "Autoencoders learn compressed representations by encoding inputs into latent spaces and reconstructing them. Variational autoencoders enable generation and interpolation in learned manifolds."
+  },
+  {
+    "Id": "32",
+    "Title": "Graph Neural Networks",
+    "Content": "GNNs process graph-structured data by aggregating information from neighboring nodes. They're effective for social network analysis, molecular property prediction, and recommendation systems."
+  },
+  {
+    "Id": "33",
+    "Title": "Few-Shot Learning",
+    "Content": "Few-shot learning enables models to generalize from minimal examples by leveraging meta-learning and transfer learning. It's crucial for scenarios with limited labeled data availability."
+  },
+  {
+    "Id": "34",
+    "Title": "Active Learning Approaches",
+    "Content": "Active learning selectively queries the most informative samples for labeling, reducing annotation costs. Uncertainty sampling and query-by-committee strategies prioritize valuable training examples."
+  },
+  {
+    "Id": "35",
+    "Title": "Self-Supervised Learning",
+    "Content": "Self-supervised learning creates supervisory signals from unlabeled data through pretext tasks. Contrastive learning and masked prediction enable learning rich representations without manual annotations."
+  },
+  {
+    "Id": "36",
+    "Title": "Continual Learning Systems",
+    "Content": "Continual learning allows models to learn new tasks without forgetting previous knowledge. Techniques like elastic weight consolidation and replay buffers mitigate catastrophic forgetting."
+  },
+  {
+    "Id": "37",
+    "Title": "Neural Architecture Search",
+    "Content": "NAS automates the design of neural network architectures using techniques like reinforcement learning and evolutionary algorithms. It discovers optimal architectures for specific tasks and constraints."
+  },
+  {
+    "Id": "38",
+    "Title": "Federated Learning",
+    "Content": "Federated learning trains models across decentralized devices while keeping data local. It enables privacy-preserving machine learning by aggregating model updates without sharing raw data."
+  },
+  {
+    "Id": "39",
+    "Title": "Knowledge Distillation",
+    "Content": "Knowledge distillation transfers knowledge from large teacher models to smaller student models. It compresses models while maintaining performance, enabling deployment on resource-constrained devices."
+  },
+  {
+    "Id": "40",
+    "Title": "Adversarial Training",
+    "Content": "Adversarial training improves model robustness by augmenting training data with adversarial examples. It helps models defend against intentional perturbations and improves generalization."
+  },
+  {
+    "Id": "41",
+    "Title": "Object Detection Methods",
+    "Content": "Object detection locates and classifies objects in images using architectures like YOLO, Faster R-CNN, and SSD. These methods balance accuracy and speed for real-time applications."
+  },
+  {
+    "Id": "42",
+    "Title": "Semantic Segmentation",
+    "Content": "Semantic segmentation assigns class labels to each pixel in images. U-Net, DeepLab, and fully convolutional networks enable precise boundary detection for medical imaging and autonomous driving."
+  },
+  {
+    "Id": "43",
+    "Title": "Pose Estimation Techniques",
+    "Content": "Pose estimation predicts the spatial locations of body keypoints from images or videos. It enables applications in motion capture, fitness tracking, and human-computer interaction."
+  },
+  {
+    "Id": "44",
+    "Title": "Speech Recognition Systems",
+    "Content": "Speech recognition converts spoken language into text using acoustic and language models. Modern systems combine CNNs, RNNs, and attention mechanisms with large-scale training data."
+  },
+  {
+    "Id": "45",
+    "Title": "Text-to-Speech Synthesis",
+    "Content": "TTS systems generate natural-sounding speech from text using neural vocoders and prosody modeling. WaveNet and Tacotron architectures produce high-quality synthetic speech."
+  },
+  {
+    "Id": "46",
+    "Title": "Machine Translation",
+    "Content": "Neural machine translation uses sequence-to-sequence models with attention to translate between languages. Transformer-based models achieve state-of-the-art performance on multilingual translation tasks."
+  },
+  {
+    "Id": "47",
+    "Title": "Question Answering Systems",
+    "Content": "QA systems extract or generate answers from text using reading comprehension models. BERT-based models and retrieval-augmented generation enable accurate factual question answering."
+  },
+  {
+    "Id": "48",
+    "Title": "Text Summarization",
+    "Content": "Text summarization condenses long documents into concise summaries. Extractive methods select key sentences while abstractive approaches generate new text capturing essential information."
+  },
+  {
+    "Id": "49",
+    "Title": "Sentiment Analysis",
+    "Content": "Sentiment analysis determines the emotional tone of text using classification models. It helps businesses understand customer opinions, monitor brand perception, and analyze social media."
+  },
+  {
+    "Id": "50",
+    "Title": "Named Entity Recognition",
+    "Content": "NER identifies and classifies named entities like people, organizations, and locations in text. CRF and transformer-based models enable information extraction from unstructured documents."
+  },
+  {
+    "Id": "51",
+    "Title": "Recommendation Systems",
+    "Content": "Recommendation systems predict user preferences using collaborative filtering, content-based methods, and hybrid approaches. Matrix factorization and deep learning enable personalized suggestions."
+  },
+  {
+    "Id": "52",
+    "Title": "Collaborative Filtering",
+    "Content": "Collaborative filtering recommends items based on user similarity and behavior patterns. Memory-based and model-based approaches leverage user-item interactions for personalized recommendations."
+  },
+  {
+    "Id": "53",
+    "Title": "Matrix Factorization",
+    "Content": "Matrix factorization decomposes user-item matrices into latent factors representing preferences. SVD and ALS methods discover hidden patterns for recommendation and dimensionality reduction."
+  },
+  {
+    "Id": "54",
+    "Title": "A/B Testing Methodology",
+    "Content": "A/B testing compares variants to determine which performs better. Statistical significance testing and proper experimental design ensure reliable conclusions about feature effectiveness."
+  },
+  {
+    "Id": "55",
+    "Title": "Causal Inference",
+    "Content": "Causal inference estimates cause-and-effect relationships from observational data. Propensity score matching, instrumental variables, and difference-in-differences help identify causal effects."
+  },
+  {
+    "Id": "56",
+    "Title": "Bayesian Methods",
+    "Content": "Bayesian approaches incorporate prior knowledge and quantify uncertainty in predictions. MCMC sampling and variational inference enable probabilistic modeling of complex systems."
+  },
+  {
+    "Id": "57",
+    "Title": "Monte Carlo Methods",
+    "Content": "Monte Carlo methods use random sampling to solve computational problems. They're essential for Bayesian inference, reinforcement learning, and estimating intractable expectations."
+  },
+  {
+    "Id": "58",
+    "Title": "Gaussian Processes",
+    "Content": "Gaussian processes provide flexible non-parametric models with uncertainty quantification. They're useful for regression, optimization, and scenarios where confidence intervals are crucial."
+  },
+  {
+    "Id": "59",
+    "Title": "Support Vector Machines",
+    "Content": "SVMs find optimal hyperplanes for classification by maximizing margins between classes. Kernel tricks enable non-linear decision boundaries in high-dimensional spaces."
+  },
+  {
+    "Id": "60",
+    "Title": "Decision Trees and Random Forests",
+    "Content": "Decision trees partition data recursively based on features. Random forests ensemble multiple trees to reduce overfitting and provide robust predictions with feature importance."
+  },
+  {
+    "Id": "61",
+    "Title": "Gradient Boosting Machines",
+    "Content": "Gradient boosting builds ensembles by iteratively adding trees that correct previous errors. XGBoost, LightGBM, and CatBoost achieve excellent performance on tabular data."
+  },
+  {
+    "Id": "62",
+    "Title": "Principal Component Analysis",
+    "Content": "PCA reduces dimensionality by projecting data onto principal components that capture maximum variance. It's useful for visualization, noise reduction, and feature extraction."
+  },
+  {
+    "Id": "63",
+    "Title": "t-SNE Visualization",
+    "Content": "t-SNE projects high-dimensional data into 2D or 3D while preserving local structure. It reveals clusters and relationships in complex datasets for exploratory analysis."
+  },
+  {
+    "Id": "64",
+    "Title": "UMAP for Dimension Reduction",
+    "Content": "UMAP preserves both local and global structure better than t-SNE while being faster. It uses manifold learning and topological data analysis for visualization and preprocessing."
+  },
+  {
+    "Id": "65",
+    "Title": "K-Nearest Neighbors",
+    "Content": "KNN classifies instances based on the labels of their k nearest neighbors. Despite simplicity, it's effective for many tasks and provides interpretable local decisions."
+  },
+  {
+    "Id": "66",
+    "Title": "Logistic Regression",
+    "Content": "Logistic regression models probabilities of binary outcomes using sigmoid functions. Despite being linear, it's interpretable, efficient, and often serves as a strong baseline."
+  },
+  {
+    "Id": "67",
+    "Title": "Linear Regression Analysis",
+    "Content": "Linear regression models relationships between variables with linear functions. It provides interpretable coefficients and serves as a foundation for more complex statistical methods."
+  },
+  {
+    "Id": "68",
+    "Title": "Polynomial Regression",
+    "Content": "Polynomial regression extends linear models by adding polynomial terms of features. It captures non-linear relationships while maintaining the interpretability of linear models."
+  },
+  {
+    "Id": "69",
+    "Title": "Ridge and Lasso Regression",
+    "Content": "Ridge and Lasso add regularization penalties to linear regression. Ridge shrinks coefficients while Lasso performs feature selection by driving some coefficients to zero."
+  },
+  {
+    "Id": "70",
+    "Title": "Elastic Net Regularization",
+    "Content": "Elastic Net combines L1 and L2 penalties, balancing feature selection and coefficient shrinkage. It's effective when features are correlated and provides flexible regularization."
+  },
+  {
+    "Id": "71",
+    "Title": "Hidden Markov Models",
+    "Content": "HMMs model sequences with hidden states and observable emissions. They're used in speech recognition, bioinformatics, and any domain with sequential dependencies."
+  },
+  {
+    "Id": "72",
+    "Title": "Conditional Random Fields",
+    "Content": "CRFs model conditional probabilities of sequences given observations. They excel at structured prediction tasks like NER and POS tagging by considering label dependencies."
+  },
+  {
+    "Id": "73",
+    "Title": "Markov Chain Monte Carlo",
+    "Content": "MCMC generates samples from complex probability distributions using Markov chains. Metropolis-Hastings and Gibbs sampling enable Bayesian inference in high-dimensional spaces."
+  },
+  {
+    "Id": "74",
+    "Title": "Variational Inference",
+    "Content": "Variational inference approximates posterior distributions by optimizing simpler variational families. It scales better than MCMC for large datasets in Bayesian modeling."
+  },
+  {
+    "Id": "75",
+    "Title": "Expectation Maximization",
+    "Content": "EM alternates between estimating hidden variables and maximizing likelihood. It's essential for learning mixture models, HMMs, and handling missing data."
+  },
+  {
+    "Id": "76",
+    "Title": "Probabilistic Graphical Models",
+    "Content": "PGMs represent complex probability distributions using graphs. Bayesian networks and Markov random fields enable efficient inference and learning in structured domains."
+  },
+  {
+    "Id": "77",
+    "Title": "Topic Modeling",
+    "Content": "Topic modeling discovers abstract topics in document collections. LDA and NMF decompose text into interpretable themes for document organization and content discovery."
+  },
+  {
+    "Id": "78",
+    "Title": "Latent Dirichlet Allocation",
+    "Content": "LDA models documents as mixtures of topics and topics as distributions over words. It's widely used for text mining, content recommendation, and document understanding."
+  },
+  {
+    "Id": "79",
+    "Title": "Word Embeddings",
+    "Content": "Word embeddings represent words as dense vectors capturing semantic relationships. Word2Vec, GloVe, and FastText enable neural networks to process text effectively."
+  },
+  {
+    "Id": "80",
+    "Title": "Contextual Embeddings",
+    "Content": "Contextual embeddings from models like BERT produce different representations based on context. They capture polysemy and nuanced meanings better than static embeddings."
+  },
+  {
+    "Id": "81",
+    "Title": "BERT and Language Models",
+    "Content": "BERT uses bidirectional transformers for pre-training on masked language modeling. Fine-tuning BERT achieves state-of-the-art results on numerous NLP benchmarks."
+  },
+  {
+    "Id": "82",
+    "Title": "GPT Architecture",
+    "Content": "GPT uses unidirectional transformers for autoregressive language modeling. Scaling to billions of parameters enables few-shot learning and diverse language capabilities."
+  },
+  {
+    "Id": "83",
+    "Title": "Vision Transformers",
+    "Content": "Vision Transformers apply transformer architecture to images by treating patches as tokens. They match or exceed CNN performance when trained on sufficient data."
+  },
+  {
+    "Id": "84",
+    "Title": "Multi-Modal Learning",
+    "Content": "Multi-modal learning combines information from different modalities like vision and language. CLIP and similar models learn joint representations for cross-modal understanding."
+  },
+  {
+    "Id": "85",
+    "Title": "Zero-Shot Learning",
+    "Content": "Zero-shot learning classifies instances from unseen classes using auxiliary information. Semantic embeddings and attribute-based methods enable generalization beyond training categories."
+  },
+  {
+    "Id": "86",
+    "Title": "Prompt Engineering",
+    "Content": "Prompt engineering crafts inputs to elicit desired behaviors from language models. Effective prompts improve performance on downstream tasks without additional training."
+  },
+  {
+    "Id": "87",
+    "Title": "Chain-of-Thought Reasoning",
+    "Content": "Chain-of-thought prompting encourages models to show intermediate reasoning steps. It significantly improves performance on complex reasoning and mathematical tasks."
+  },
+  {
+    "Id": "88",
+    "Title": "Retrieval-Augmented Generation",
+    "Content": "RAG enhances language models by retrieving relevant information before generation. It improves factual accuracy and enables models to access up-to-date knowledge."
+  },
+  {
+    "Id": "89",
+    "Title": "Model Compression Techniques",
+    "Content": "Model compression reduces model size through pruning, quantization, and knowledge distillation. Compressed models maintain performance while enabling deployment on edge devices."
+  },
+  {
+    "Id": "90",
+    "Title": "Quantization Methods",
+    "Content": "Quantization reduces numerical precision of weights and activations to decrease memory and computation. Post-training and quantization-aware training enable efficient inference."
+  },
+  {
+    "Id": "91",
+    "Title": "Neural Network Pruning",
+    "Content": "Pruning removes unnecessary connections or neurons from networks. Magnitude-based and structured pruning reduce model size and inference time with minimal accuracy loss."
+  },
+  {
+    "Id": "92",
+    "Title": "Edge AI and TinyML",
+    "Content": "Edge AI deploys machine learning models on IoT devices and edge hardware. TinyML optimizes models for microcontrollers, enabling intelligent devices with minimal resources."
+  },
+  {
+    "Id": "93",
+    "Title": "MLOps and Model Deployment",
+    "Content": "MLOps practices streamline model development, deployment, and monitoring. CI/CD pipelines, versioning, and automated testing ensure reliable machine learning systems."
+  },
+  {
+    "Id": "94",
+    "Title": "Model Monitoring and Drift",
+    "Content": "Model monitoring detects performance degradation and data drift in production. Tracking metrics and retraining strategies maintain model quality over time."
+  },
+  {
+    "Id": "95",
+    "Title": "Data Versioning",
+    "Content": "Data versioning tracks changes in datasets for reproducibility and debugging. Tools like DVC enable collaborative data science with version control for data and models."
+  },
+  {
+    "Id": "96",
+    "Title": "Experiment Tracking",
+    "Content": "Experiment tracking logs hyperparameters, metrics, and artifacts for ML experiments. Platforms like MLflow and Weights & Biases enable comparison and reproducibility."
+  },
+  {
+    "Id": "97",
+    "Title": "Feature Stores",
+    "Content": "Feature stores centralize feature engineering and serve consistent features for training and inference. They reduce redundancy and ensure feature consistency across teams."
+  },
+  {
+    "Id": "98",
+    "Title": "Model Serving Infrastructure",
+    "Content": "Model serving systems provide APIs for inference with scalability and low latency. TensorFlow Serving, TorchServe, and custom solutions handle production workloads."
+  },
+  {
+    "Id": "99",
+    "Title": "Distributed Training",
+    "Content": "Distributed training parallelizes model training across multiple GPUs or machines. Data parallelism, model parallelism, and pipeline parallelism enable training large-scale models."
+  },
+  {
+    "Id": "100",
+    "Title": "GPU Acceleration",
+    "Content": "GPUs accelerate deep learning through massive parallelism in matrix operations. CUDA and cuDNN enable efficient training and inference for neural networks."
+  },
+  {
+    "Id": "101",
+    "Title": "Mixed Precision Training",
+    "Content": "Mixed precision uses both 16-bit and 32-bit floats to accelerate training while maintaining accuracy. Automatic mixed precision in modern frameworks reduces memory and speeds up computation."
+  },
+  {
+    "Id": "102",
+    "Title": "Learning Rate Scheduling",
+    "Content": "Learning rate schedules adjust the learning rate during training. Step decay, cosine annealing, and warm restarts improve convergence and final model performance."
+  },
+  {
+    "Id": "103",
+    "Title": "Early Stopping",
+    "Content": "Early stopping prevents overfitting by terminating training when validation performance stops improving. It saves computation time and selects models with better generalization."
+  },
+  {
+    "Id": "104",
+    "Title": "Curriculum Learning",
+    "Content": "Curriculum learning trains models on progressively harder examples. Starting with easier samples and gradually increasing difficulty can improve convergence and final performance."
+  },
+  {
+    "Id": "105",
+    "Title": "Multi-Task Learning",
+    "Content": "Multi-task learning trains a single model on multiple related tasks simultaneously. Shared representations enable knowledge transfer and improve efficiency and performance."
+  },
+  {
+    "Id": "106",
+    "Title": "Domain Adaptation",
+    "Content": "Domain adaptation transfers knowledge from source to target domains with different distributions. Techniques minimize domain shift for better generalization across domains."
+  },
+  {
+    "Id": "107",
+    "Title": "Semi-Supervised Learning",
+    "Content": "Semi-supervised learning leverages both labeled and unlabeled data. Pseudo-labeling, consistency regularization, and co-training improve performance with limited annotations."
+  },
+  {
+    "Id": "108",
+    "Title": "Weakly Supervised Learning",
+    "Content": "Weakly supervised learning uses incomplete, inexact, or inaccurate labels. It reduces annotation costs while still producing useful models for various applications."
+  },
+  {
+    "Id": "109",
+    "Title": "Data Preprocessing Pipelines",
+    "Content": "Data preprocessing transforms raw data into model-ready formats. Steps include cleaning, normalization, encoding, and handling missing values to ensure quality inputs."
+  },
+  {
+    "Id": "110",
+    "Title": "Imbalanced Data Handling",
+    "Content": "Imbalanced datasets have skewed class distributions that challenge standard learning. SMOTE, class weighting, and specialized metrics address imbalance for better minority class performance."
   }
 ]
