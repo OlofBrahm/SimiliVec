@@ -19,8 +19,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the application
 COPY UMAP_service.py .
 
-# Expose port 8000
-EXPOSE 8000
+# Railway will set this, but default to 8000 for local dev
+ENV PORT=8000
 
-# Run the FastAPI application
-CMD ["python", "UMAP_service.py"]
+# Expose the port
+EXPOSE ${PORT}
+
+# Run with uvicorn, binding to 0.0.0.0 and using Railway's PORT
+CMD uvicorn UMAP_service:app --host 0.0.0.0 --port ${PORT}
