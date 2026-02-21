@@ -1,7 +1,7 @@
 # SimiliVec: Interactive Vector Engine & Visualizer
 
 ## Project Overwiew
-**SimiliVec** is a full-stack vector database and visualization platform designed to explore high-performance similarity search and high-dimensional data analysis. The project moves beyond simple storage by providing a complete pipeline—from raw text embedding to interactive 2D/3D visualization—allowing users to "see" how different mathematical approaches organize data.
+**SimiliVec** is a full-stack vector database and visualization platform designed to explore high-performance similarity search and high-dimensional data analysis. The project moves beyond simple storage by providing a complete pipeline—from raw text embedding to interactive 3D visualization—allowing users to "see" how different mathematical approaches organize data.
 
 ---
 ### Core Components
@@ -11,7 +11,7 @@
 * **Hybrid Dimension Reduction:**
     * **PCA (Linear):** Handled natively in C# using the **Microsoft.ML** library for fast, deterministic linear projection.
     * **UMAP (Non-Linear):** Managed by a dedicated **Python-based microservice** to leverage the `umap-learn` ecosystem for complex manifold approximation.
-* **Interactive Dashboard (React):** A modern frontend built to visualize vector clusters in 2D/3D space, enabling users to interact with data and validate search results visually.
+* **Interactive Dashboard (React):** A modern frontend built to visualize vector clusters in 3D space, enabling users to interact with data and validate search results visually.
 
 ---
 
