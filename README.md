@@ -30,6 +30,7 @@
 ### Prerequisites
 
 - .NET 9.0 SDK or later
+- Node.js & npm (for the React frontend)
 - PowerShell (Windows) or Bash (Linux/Mac)
 
 ### Setup Instructions
@@ -57,16 +58,30 @@
    - E5-Small-V2 model (133 MB)
    - Tokenizer files (vocab.txt, tokenizer.json, tokenizer_config.json)
 
-3. **Build and run the project:**
+3. **Build and run the backend:**
    ```bash
    cd SimiliVec.Api
-   dotnet build
    dotnet run
    ```
 
-4. **Access the API:**
-   - Swagger UI: http://localhost:5202/swagger
-   - API Endpoint: http://localhost:5202/api
+4. **Run the frontend(react):**
+   ```bash
+   cd ReactFront/SimiliVecReact
+   npm install
+   npm run dev
+   ```
+5. **Start the UMAP-service (python):**
+   ```bash
+   cd services/umap-services
+   pip install -r requirements.txt
+   python main.py
+   ```
+
+## Project Structure
+* **SimiliVec.Api:** The C# ASP.NET Core backend and entry point.
+* **ReactFront/SimiliVecReact:** Modern React frontend for vector visualization.
+* **VectorDataBase: Core logic** for the custom vector database and E5 embedding model.
+* **services/umap-services:** Python-based Flask/FastAPI service for UMAP and PCA reduction.
 
 
 ## License & Credits
