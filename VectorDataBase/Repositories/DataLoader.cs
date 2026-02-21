@@ -1,0 +1,124 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using VectorDataBase.Interfaces;
+using VectorDataBase.Models;
+
+namespace VectorDataBase.Repositories;
+
+/// <summary>
+/// Handles loading and saving document data from persistent storage
+/// </summary>
+public class DataLoader : IDataLoader
+{
+    private readonly string _dataDirectory;
+    private readonly string _dataFileName;
+    private readonly string _fullFilePath;
+    private readonly string _sampleDataPath;
+
+    private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    {
+        WriteIndented = true
+    };
+
+    public DataLoader()
+    {
+        _dataFileName = "documents.json";
+        
+        // Try to find bundled sample data first (for production/demo)
+        var appDirectory = AppContext.BaseDirectory;
+        _sampleDataPath = Path.Combine(appDirectory, "SampleData", _dataFileName);
+        
+        // AppData folder for user-saved documents
+        _dataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        _dataDirectory = Path.Combine(_dataDirectory, "SimiliVec");
+        if (!Directory.Exists(_dataDirectory))
+        {
+            Directory.CreateDirectory(_dataDirectory);
+        }
+        _fullFilePath = Path.Combine(_dataDirectory, _dataFileName);
+        
+        // Initialize user data file if it doesn't exist
+        if (!File.Exists(_fullFilePath))
+        {
+            File.Create(_fullFilePath).Close();
+            string defaultJstring = "[]";
+            File.WriteAllText(_fullFilePath, defaultJstring);
+        }
+    }
+
+    /// <summary>
+    /// Ensures that the specified directory exists; if not, creates it.
+    /// </summary>
+    private static void EnsureDirectoryExists(string filePath)
+    {
+        var directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+    }
+
+    /// <summary>
+    /// Loads data from a text file
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<DocumentModel> LoadDataFromFile()
+    {
+        EnsureDirectoryExists(_fullFilePath);
+        IEnumerable<DocumentModel> data = new List<DocumentModel>();
+        
+        // Try loading from bundled sample data first
+        if (File.Exists(_sampleDataPath))
+        {
+            var jsonData = File.ReadAllText(_sampleDataPath);
+            data = JsonSerializer.Deserialize<IEnumerable<DocumentModel>>(jsonData, _jsonOptions) ?? new List<DocumentModel>();
+            Console.WriteLine($"LoadDataFromFile: Loaded {data.Count()} documents from bundled sample data");
+            return data;
+        }
+        
+        // Fall back to user AppData folder
+        if (File.Exists(_fullFilePath))
+        {
+            var jsonData = File.ReadAllText(_fullFilePath);
+            data = JsonSerializer.Deserialize<IEnumerable<DocumentModel>>(jsonData, _jsonOptions) ?? new List<DocumentModel>();
+            Console.WriteLine($"LoadDataFromFile: Loaded {data.Count()} documents from {_fullFilePath}");
+        }
+        else
+        {
+            Console.WriteLine($"LoadDataFromFile: No data found, using empty list");
+        }
+        return data;
+    }
+
+    /// <summary>
+    /// Saves data to a text file
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public void SaveDataToFile<T>(T data)
+    {
+        EnsureDirectoryExists(_dataDirectory);
+        var jsonData = JsonSerializer.Serialize(data, _jsonOptions);
+        try
+        {
+            File.WriteAllText(_fullFilePath, jsonData);
+        }
+        catch
+        {
+            Console.WriteLine("Failed to write data to file.");
+        }
+    }
+
+    /// <summary>
+    /// Loads all documents
+    /// </summary>
+    public IEnumerable<DocumentModel> LoadAllDocuments()
+    {
+        var documents = LoadDataFromFile();
+        var docList = documents.ToList();
+        Console.WriteLine($"LoadAllDocuments: Total {docList.Count} documents loaded");
+        return docList;
+    }
+}

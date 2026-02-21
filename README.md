@@ -13,7 +13,7 @@
 
 * **Embedding Model:** Uses the **E5 transformer model** for generating high-quality vector representations.
 * **Indexing Structure:** Implements the **Hierarchical Navigable Small World (HNSW)** graph for efficient approximate nearest neighbor search.
-
+* **PCA Convertion:** Implements PCA Conversion for visualization of the HNSW index.
 ---
 
 ## Key Features
@@ -67,3 +67,9 @@
 4. **Access the API:**
    - Swagger UI: http://localhost:5202/swagger
    - API Endpoint: http://localhost:5202/api
+
+
+## License & Credits
+This project is MIT licensed. 
+Third-party components (UMAP and E5-small-v2) are used under their respective licenses. 
+See [CREDITS.md](./CREDITS.md) for full details and citations.

@@ -1,6 +1,6 @@
-using VectorDataBase.Datahandling;
+using VectorDataBase.Models;
 using System.Collections.Generic;
-using System;
+
 namespace VectorDataBase.Interfaces;
 
 public interface IDataLoader

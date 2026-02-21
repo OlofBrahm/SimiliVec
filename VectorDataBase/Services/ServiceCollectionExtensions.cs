@@ -1,10 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using VectorDataBase.Interfaces;
-using VectorDataBase.Datahandling;
 using VectorDataBase.Embedding;
 using VectorDataBase.Core;
 using VectorDataBase;
-using VectorDataBase.PCA;
+using VectorDataBase.DimensionalityReduction.PCA;
+using VectorDataBase.DimensionalityReduction.UMAP;
+using VectorDataBase.Repositories;
+using VectorDataBase.Utils;
 
 namespace VectorDataBase.Services;
 
@@ -26,14 +28,18 @@ public static class ServiceCollectionExtensions
         // Data loading
         services.AddSingleton<IDataLoader, DataLoader>();
 
+        // PCA and UMAP conversion
         services.AddSingleton<PCAConversion>();
+        services.AddSingleton<UmapConversion>();
+
+        // service layer components
+        services.AddSingleton<DocumentRepository>();
+        services.AddSingleton<NodeDocumentMapper>();
+        services.AddSingleton<CoordinateNormalizer>();
 
         // VectorService holds state and coordinates index/embeddings
         services.AddSingleton<IVectorService, VectorService>();
 
-        // FakeFrontEnd is a placeholder application component used for manual testing.
-        // Keep registered as transient for now; replace or remove when integrating the real frontend.
-        //services.AddTransient<FakeFrontEnd>();
 
         return services;
     }

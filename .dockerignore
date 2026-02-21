@@ -1,0 +1,27 @@
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+
+# IDE files
+**/.vs/
+**/.vscode/
+**/.idea/
+
+# Git
+**/.git/
+**/.gitignore
+
+# Node modules (if any)
+**/node_modules/
+
+# Environment files
+**/.env
+**/.env.local
+
+# Documentation
+**/*.md
+!README.md
+
+# Test files
+**/TestData/

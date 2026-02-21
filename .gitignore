@@ -3,8 +3,14 @@
 [Oo]bj/
 [Dd]ebug/
 [Rr]elease/
-MLModels/
 *.user
 *.exe
 *.dll
 *.pdb
+env/
+.venv/
+__pycache__/
+venv/
+**/venv/
+**/.venv/
+**/__pycache__/

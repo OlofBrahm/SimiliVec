@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Microsoft.ML.Transforms.Text;
 using VectorDataBase.Interfaces;
 
 namespace VectorDataBase.Core;
@@ -17,7 +20,7 @@ public class DataIndex : IDataIndex
     public int MaxNeighbours { get; init; } //max number of neighbors per node
     public int EfConstruction { get; init; } //size of candidate list during construction
     public float InverseLogM { get; init; } //Controls the probability of a node being assigned to higher levels
-    
+
     /// <summary>
     /// Insert a new node into the HSNW index
     /// </summary>
@@ -51,11 +54,11 @@ public class DataIndex : IDataIndex
     /// <param name="newNode"></param>
     private void InitializeFirstNode(HnswNode newNode)
     {
-        newNode.level = 0;
+        newNode.Level = 0;
         newNode.Neighbors = new List<int>[1];
         newNode.Neighbors[0] = new List<int>(MaxNeighbours);
-        Nodes.Add(newNode.id, newNode);
-        EntryPointId = newNode.id;
+        Nodes.Add(newNode.Id, newNode);
+        EntryPointId = newNode.Id;
         MaxLevel = 0;
     }
 
@@ -69,7 +72,7 @@ public class DataIndex : IDataIndex
     {
         // Calculate and assign level
         int newNodeLevel = HNSWUtils.GetRandomLevel(InverseLogM, random);
-        newNode.level = newNodeLevel;
+        newNode.Level = newNodeLevel;
 
         // Initialize neighbor lists for each level up to the new node's level
         newNode.Neighbors = new List<int>[newNodeLevel + 1];
@@ -77,7 +80,7 @@ public class DataIndex : IDataIndex
         {
             newNode.Neighbors[level] = new List<int>(MaxNeighbours);
         }
-        Nodes.Add(newNode.id, newNode);
+        Nodes.Add(newNode.Id, newNode);
         return newNodeLevel;
     }
 
@@ -97,7 +100,7 @@ public class DataIndex : IDataIndex
             {
                 // Search with ef=1 to quickly find the next best entry point
                 List<int> candidates = SearchLayer(newNode.Vector, currentEntryId, level, ef: 1);
-                
+
                 if (candidates.Count > 0)
                 {
                     currentEntryId = candidates[0];
@@ -120,10 +123,10 @@ public class DataIndex : IDataIndex
         {
             // Search the layer to find potential neighbors
             List<int> candidates = SearchLayer(newNode.Vector, currentEntryId, level, EfConstruction);
-            
+
             // Select neighbors using heuristic
             List<int> neighborsToConnect = SelectNeighbors(newNode.Vector, candidates, MaxNeighbours);
-            
+
             // Establish connections
             newNode.Neighbors[level].AddRange(neighborsToConnect);
 
@@ -131,7 +134,7 @@ public class DataIndex : IDataIndex
             foreach (int neighborId in neighborsToConnect)
             {
                 HnswNode neighborNode = Nodes[neighborId];
-                neighborNode.Neighbors[level].Add(newNode.id);
+                neighborNode.Neighbors[level].Add(newNode.Id);
 
                 if (neighborNode.Neighbors[level].Count > MaxNeighbours)
                 {
@@ -153,13 +156,13 @@ public class DataIndex : IDataIndex
     /// <param name="newNode"></param>
     private void UpdateMaxState(HnswNode newNode)
     {
-        if (newNode.level > MaxLevel)
+        if (newNode.Level > MaxLevel)
         {
-            MaxLevel = newNode.level;
-            EntryPointId = newNode.id;
+            MaxLevel = newNode.Level;
+            EntryPointId = newNode.Id;
         }
     }
-    
+
     /// <summary>
     /// Find nearest neighbors for a given query vector
     /// </summary>
@@ -191,7 +194,7 @@ public class DataIndex : IDataIndex
         List<int> finalCandidates = SearchLayer(queryVector, currentEntryId, 0, ef);
         return finalCandidates.Take(k).ToList();
     }
-    
+
     /// <summary>
     /// Select neighbors ensuring diversity using heuristic
     /// </summary>
@@ -205,16 +208,15 @@ public class DataIndex : IDataIndex
         var sortedCandidates = candidates.Select(id => new
         {
             Id = id,
-            Distance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, Nodes[id].Vector)
+            Distance = GetDistance(queryVector, Nodes[id].Vector)
         })
         .OrderBy(x => x.Distance)
         .ToList();
 
-        //Select neighbors ensuring diversity
         List<int> selectedNeighbors = new List<int>();
         HashSet<int> selectedSet = new HashSet<int>();
 
-        //First pass: select diverse neighbors
+        // Select diverse neighbors
         foreach (var candidate in sortedCandidates)
         {
             if (selectedNeighbors.Count >= maxConnections)
@@ -226,7 +228,7 @@ public class DataIndex : IDataIndex
             //Check diversity against already selected neighbors
             foreach (int selectedId in selectedNeighbors)
             {
-                float distanceBetween = 1.0f - HNSWUtils.CosineSimilarity(Nodes[candidate.Id].Vector, Nodes[selectedId].Vector);
+                float distanceBetween = GetDistance(Nodes[candidate.Id].Vector, Nodes[selectedId].Vector);
                 if (distanceBetween < candidate.Distance)
                 {
                     isDiverse = false;
@@ -240,7 +242,7 @@ public class DataIndex : IDataIndex
                 selectedSet.Add(candidate.Id);
             }
         }
-
+        //Fill remaining slots
         if (selectedNeighbors.Count < maxConnections)
         {
             foreach (var candidate in sortedCandidates)
@@ -278,110 +280,154 @@ public class DataIndex : IDataIndex
     }
 
 
-   /// <summary>
-   /// Helper method to extract candidate IDs from the sorted candidate queue
-   /// </summary>
-   /// <param name="CandidateQueue"></param>
-   /// <param name="limit"></param>
-   /// <returns></returns>
-    private List<int> GetCandidatesFromQueue(SortedDictionary<float, List<int>> CandidateQueue, int limit)
-    {
-        List<int> result = new List<int>();
-        foreach (var entry in CandidateQueue)
-        {
-            foreach (var id in entry.Value)
-            {
-                if (result.Count < limit)
-                {
-                    result.Add(id);
-                }
-                else
-                {
-                    return result;
-                }
-            }
-        }
-        return result;
-    }
 
-   /// <summary>
-   /// Search for nearest neighbors in a given layer
-   /// </summary>
-   /// <param name="queryVector"></param>
-   /// <param name="entryId"></param>
-   /// <param name="layer"></param>
-   /// <param name="ef"></param>
-   /// <returns></returns>
+    /// <summary>
+    /// Search for nearest neighbors in a given layer
+    /// </summary>
+    /// <param name="queryVector"></param>
+    /// <param name="entryId"></param>
+    /// <param name="layer"></param>
+    /// <param name="ef"></param>
+    /// <returns></returns>
     public List<int> SearchLayer(float[] queryVector, int entryId, int layer, int ef)
     {
         ef = Math.Max(1, ef);
 
-        var candidateQueue = new SortedDictionary<float, List<int>>();
-        var bestDistances = new SortedDictionary<float, List<int>>();
+        // Candidates: Min-priority queue to explore the nodes closest to the query first.
+        var candidateQueue = new PriorityQueue<int, float>();
+
+        // bestResults: A Max-prio queue to track the best 'ef' results found.
+        // Stores distances in negative values because PriorityQueue is a min-heap.
+        // This allows us to quickly Dequeue the furthest node when we find a better one.
+        var bestResults = new PriorityQueue<int, float>();
+
+        // Track nodes we have already visited to prevent infinite loops and redundant work.
         var visitedSet = new HashSet<int>();
 
         if (!Nodes.TryGetValue(entryId, out var entryNode))
+        {
             return new List<int>();
+        }
 
-        float entryDistance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, entryNode.Vector);
-
-        candidateQueue[entryDistance] = new List<int> { entryId };
-        bestDistances[entryDistance] = new List<int> { entryId };
+        // Initialize search with the entry point
+        float entryDist = GetDistance(queryVector, entryNode.Vector);
+        candidateQueue.Enqueue(entryId, entryDist);
+        bestResults.Enqueue(entryId, -entryDist);
         visitedSet.Add(entryId);
-
-        int bestCount = 1;
 
         while (candidateQueue.Count > 0)
         {
-            float currentBestDistance = candidateQueue.Keys.First();
-            var bucket = candidateQueue[currentBestDistance];
-            int currentBestId = bucket[0];
-            bucket.RemoveAt(0);
-            if (bucket.Count == 0) candidateQueue.Remove(currentBestDistance);
+            // Get the nearest candidate that hasn't been explored yet
+            candidateQueue.TryPeek(out int currentId, out float currentDist);
+            candidateQueue.Dequeue();
 
-            float worstDistanceInResults = bestDistances.Keys.Last();
+            // Get the current worst/furthest distance in our top-K results
+            bestResults.TryPeek(out _, out float worstDistNeg);
+            float worstDist = -worstDistNeg;
 
-            if (currentBestDistance > worstDistanceInResults && bestCount >= ef)
-                break;
+            // If the current closest candidate is already further than our worst result
+            // and we have enough results, no better results can be found. 
+            if (currentDist > worstDist && bestResults.Count >= ef) break;
 
-            var currentNode = Nodes[currentBestId];
+            var currentNode = Nodes[currentId];
 
-            if (layer < currentNode.Neighbors.Length)
+            // Ensure that the node has connections at this specific HNSW layer.
+            if (layer >= currentNode.Neighbors.Length) continue;
+
+            foreach (int neighborId in currentNode.Neighbors[layer])
             {
-                var neighborsAtLevel = currentNode.Neighbors[layer];
-                foreach (int neighborId in neighborsAtLevel)
+                // Only process neighbours we haven't seen in this search
+                if (visitedSet.Add(neighborId))
                 {
-                    if (visitedSet.Add(neighborId))
+                    float neighborDist = GetDistance(queryVector, Nodes[neighborId].Vector);
+
+                    // If this neighbor is closer than our worst result
+                    // or if we haven't reached the required 'ef' count
+                    if (bestResults.Count < ef || neighborDist < worstDist)
                     {
-                        var neighborNode = Nodes[neighborId];
-                        float neighborDistance = 1.0f - HNSWUtils.CosineSimilarity(queryVector, neighborNode.Vector);
+                        candidateQueue.Enqueue(neighborId, neighborDist);
+                        bestResults.Enqueue(neighborId, -neighborDist);
 
-                        if (bestCount < ef || neighborDistance < worstDistanceInResults)
+                        // Maintain the size of the result set to exactly 'ef'
+                        if (bestResults.Count > ef)
                         {
-                            if (!candidateQueue.TryGetValue(neighborDistance, out var cqBucket))
-                                candidateQueue[neighborDistance] = cqBucket = new List<int>();
-                            cqBucket.Add(neighborId);
-
-                            if (!bestDistances.TryGetValue(neighborDistance, out var bdBucket))
-                                bestDistances[neighborDistance] = bdBucket = new List<int>();
-                            bdBucket.Add(neighborId);
-                            bestCount++;
-
-                            if (bestCount > ef)
-                            {
-                                float lastKey = bestDistances.Keys.Last();
-                                var lastBucket = bestDistances[lastKey];
-                                lastBucket.RemoveAt(lastBucket.Count - 1);
-                                if (lastBucket.Count == 0)
-                                    bestDistances.Remove(lastKey);
-                                bestCount--;
-                            }
+                            bestResults.Dequeue();
                         }
+
+                        // Update worstDist for the next check
+                        bestResults.TryPeek(out _, out worstDistNeg);
+                        worstDist = -worstDistNeg;
                     }
                 }
             }
         }
 
-        return GetCandidatesFromQueue(bestDistances, ef);
+        return ExtractResults(bestResults);
     }
+
+    private List<int> ExtractResults(PriorityQueue<int, float> queue)
+    {
+        var results = new List<int>(queue.Count);
+        while (queue.Count > 0) results.Add(queue.Dequeue());
+        results.Reverse();
+        return results;
+    }
+
+    /// <summary>
+    /// Calculates distance between two vectors. 1 - Cosine Similarity
+    /// </summary>
+    /// <param name="v1"></param>
+    /// <param name="v2"></param>
+    /// <returns></returns>
+    private static float GetDistance(float[] v1, float[] v2) => 1.0f - HNSWUtils.CosineSimilarity(v1, v2);
+
+
+    /// <summary>
+    /// Generates a KnnMatrix from all nodes
+    /// </summary>
+    /// <param name="k"></param>
+    /// <returns></returns>
+    public (int[][], float[][]) KnnMatrix(int k)
+    {
+        var nodesList = Nodes.Values.ToList();
+        var nodeCount = nodesList.Count;
+        
+        var idToInternalIndex = new Dictionary<int, int>();
+        for(int i = 0; i < nodeCount; i++)
+        {
+            idToInternalIndex[nodesList[i].Id] = i;
+        }
+
+        int[][] allIndices = new int[nodeCount][];
+        float[][] allDistances = new float[nodeCount][];
+
+        Parallel.For(0, nodeCount, i =>
+        {
+            var queryVector = nodesList[i].Vector;
+
+            //k + 1, because closest is always it self
+            List<int> neighborIds = FindNearestNeighbors(queryVector, k + 1);
+
+            int[] rowIndicies = new int[k];
+            float[] rowDistances = new float[k];
+
+            int found = 0;
+            for (int j = 0; j < neighborIds.Count && found < k; j++)
+            {
+                int neighborId = neighborIds[j];
+                if (neighborId == nodesList[i].Id) continue; // skip self
+
+                rowIndicies[found] = idToInternalIndex[neighborId];
+                rowDistances[found] = GetDistance(queryVector, Nodes[neighborId].Vector);
+                found++;
+            }
+
+            allIndices[i] = rowIndicies;
+            allDistances[i] = rowDistances;
+        });
+
+        return (allIndices, allDistances);
+    }
+
+
 }

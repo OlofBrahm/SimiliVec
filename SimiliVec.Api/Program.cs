@@ -3,23 +3,49 @@ using VectorDataBase.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Railway port support - only override if PORT env var is explicitly set
+var portEnvVar = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(portEnvVar))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{portEnvVar}");
+}
+
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins"; 
 
-// Just so you can connect whatever to the api
+// Get frontend URL from environment variable for production CORS
+var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+
+// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          // Allow access from any origin
-                          policy.AllowAnyOrigin() 
-                                .AllowAnyHeader()
-                                .AllowAnyMethod();
+                          if (!string.IsNullOrEmpty(frontendUrl))
+                          {
+                              // Production: specific origin
+                              policy.WithOrigins(frontendUrl)
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod();
+                          }
+                          else
+                          {
+                              // Development: allow any origin
+                              policy.AllowAnyOrigin() 
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod();
+                          }
                       });
 });
 
 builder.Services.AddVectorDataBaseServices();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Allow NaN and Infinity values in JSON responses
+        options.JsonSerializerOptions.NumberHandling = 
+            System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -43,13 +69,12 @@ catch (Exception ex)
     Console.WriteLine($"Pre-startup error indexing documents: {ex.Message}");
     Console.WriteLine($"Stack trace: {ex.StackTrace}");
 }
-
+app.UseCors(MyAllowSpecificOrigins);
 if(app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors(MyAllowSpecificOrigins);
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
