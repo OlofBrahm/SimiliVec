@@ -70,14 +70,14 @@
    pip install -r requirements.txt
    python main.py
    ```
-
+---
 ## Project Structure
 * **SimiliVec.Api:** The C# ASP.NET Core backend and entry point.
 * **ReactFront/SimiliVecReact:** Modern React frontend for vector visualization.
 * **VectorDataBase:** Core logic for the custom vector database, E5 embedding model and PCA conversion.
 * **Umap-services:** Python-based Flask/FastAPI service for UMAP reduction.
 
-
+---
 ## License & Credits
 This project is MIT licensed. 
 Third-party components (UMAP and E5-small-v2) are used under their respective licenses. 
