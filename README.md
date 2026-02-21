@@ -1,5 +1,6 @@
 # SimiliVec: Custom Vector Database
 
+##Project Overwiew
 
 **SimiliVec** is a full-stack vector database and visualization platform designed to explore high-performance similarity search and high-dimensional data analysis. 
 
