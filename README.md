@@ -71,7 +71,7 @@
 * **SimiliVec.Api:** The C# ASP.NET Core backend and entry point.
 * **ReactFront/SimiliVecReact:** Modern React frontend for vector visualization.
 * **VectorDataBase:** Core logic for the custom vector database, E5 embedding model and PCA conversion.
-* **Umap-services:** Python-based Flask/FastAPI service for UMAP reduction.
+* **Services/umap-services:** Python-based Flask/FastAPI service for UMAP reduction.
 
 ---
 ## License & Credits
