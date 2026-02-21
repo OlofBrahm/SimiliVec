@@ -70,6 +70,6 @@
 
 
 ## License & Credits
-This project is [Your License, e.g., MIT] licensed. 
+This project is MIT licensed. 
 Third-party components (UMAP and E5-small-v2) are used under their respective licenses. 
 See [CREDITS.md](./CREDITS.md) for full details and citations.
