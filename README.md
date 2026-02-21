@@ -1,21 +1,16 @@
 # SimiliVec: Custom Vector Database
 
 
-## Project Overview
+**SimiliVec** is a full-stack vector database and visualization platform designed to explore high-performance similarity search and high-dimensional data analysis. 
 
-**SimiliVec** is a custom vector database designed to explore the mechanics of high-performance similarity search. The project focuses on a native C# implementation of modern vector database components:
-
-* **Embedding Model:** Uses the **E5 transformer model** for generating high-quality vector representations.
-* **Indexing Structure:** Implements the **Hierarchical Navigable Small World (HNSW)** graph for efficient approximate nearest neighbor search.
-* **Node visualization** Implements PCA and UMAP dimension-reduction techniques to compare two different approaches.
+The project moves beyond simple storage by providing a complete pipeline—from raw text embedding to interactive 2D/3D visualization—allowing users to "see" how different mathematical approaches organize data.
 ---
+### Core Components
 
-## Key Features
-
-*  High-performance **HNSW** index implementation.
-*  Native integration with the **E5** embedding model.
-*  Simple API for vector insertion and similarity search.
-*  PCA and UMAP dimension reduction for visualization.
+* **Native Vector Engine (C#):** A high-performance implementation of the **Hierarchical Navigable Small World (HNSW)** algorithm for efficient Approximate Nearest Neighbor (ANN) search.
+* **Neural Embeddings:** Integrated support for the **E5 Transformer model**, transforming text into high-quality vector representations directly within the .NET ecosystem.
+* **Dual-Algorithm Visualization:** A dedicated Python-based service that implements both **PCA (Principal Component Analysis)** and **UMAP (Uniform Manifold Approximation and Projection)**. This allows for side-by-side comparisons of linear vs. non-linear dimension reduction.
+* **Interactive Dashboard (React):** A modern frontend built to visualize vector clusters, enabling users to interact with the data and validate search results visually.
 
 ---
 
