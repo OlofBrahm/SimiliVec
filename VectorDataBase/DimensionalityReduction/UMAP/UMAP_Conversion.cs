@@ -35,7 +35,7 @@ public class UmapConversion
         [JsonPropertyName("vectors")]
         public float[][]? Vectors { get; set; }
         [JsonPropertyName("n_neighbors")]
-        public int NNeighbors { get; set; } = 10;
+        public int NNeighbors { get; set; } = 30;
         [JsonPropertyName("n_epochs")]
         public int NEpochs { get; set; } = 50;
         [JsonPropertyName("n_components")]
@@ -43,7 +43,7 @@ public class UmapConversion
         [JsonPropertyName("random_state")]
         public int RandomState { get; set; } = 42;
         [JsonPropertyName("min_dist")]
-        public float MinDist { get; set; } = 0.1f;
+        public float MinDist { get; set; } = 0.01f;
     }
 
     private class TransformRequest

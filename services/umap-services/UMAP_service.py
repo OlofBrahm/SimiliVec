@@ -25,11 +25,11 @@ _reducer = None  # stored fitted reducer
 
 class FitRequest(BaseModel):
     vectors: List[List[float]]
-    n_neighbors: int = 10
+    n_neighbors: int = 30
     n_epochs: int = 50
     n_components: int = 3
     random_state: int = 42
-    min_dist: float = 0.1
+    min_dist: float = 0.01
     metric: str = 'cosine'
 
 class TransformRequest(BaseModel):
@@ -46,9 +46,13 @@ async def fit_vectors(data: FitRequest):
             n_epochs=data.n_epochs,
             n_components=data.n_components,
             random_state=data.random_state,
+            transform_seed=data.random_state,
+            min_dist=data.min_dist,
             init='random',
             low_memory=False,
-            verbose=False
+            verbose=False,
+            metric='cosine',
+            transform_queue_size=10.0
         )
 
         embedding = _reducer.fit_transform(X)

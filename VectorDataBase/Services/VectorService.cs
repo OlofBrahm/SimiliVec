@@ -22,14 +22,15 @@ public sealed class VectorService : IVectorService
     private readonly NodeDocumentMapper _nodeMapper;
     private readonly CoordinateNormalizer _normalizer;
     private readonly Random _random = Random.Shared;
+    private readonly Dictionary<int, float[]> _umapCoordinateCache = new();
 
     private CoordinateNormalizer.NormalizationParams? _umapNormParams;
     private CoordinateNormalizer.NormalizationParams? _pcaNormParams;
 
     public VectorService(
-        IDataIndex dataIndex, 
-        IEmbeddingModel embeddingModel, 
-        PCAConversion pcaConverter, 
+        IDataIndex dataIndex,
+        IEmbeddingModel embeddingModel,
+        PCAConversion pcaConverter,
         UmapConversion umapConverter,
         DocumentRepository documentRepository,
         NodeDocumentMapper nodeMapper,
@@ -46,7 +47,10 @@ public sealed class VectorService : IVectorService
         IndexDocument();
     }
 
-
+    /// <summary>
+    /// Returns the index with reduced dimensions using UMAP.
+    /// </summary>
+    /// <returns></returns>
     public async Task<List<UmapNode>> GetUmapNodes()
     {
         var nodesList = _dataIndex.Nodes.Values.ToList();
@@ -57,11 +61,14 @@ public sealed class VectorService : IVectorService
         var (normalized, normParams) = _normalizer.Normalize3D(coords);
         _umapNormParams = normParams;
 
+        _umapCoordinateCache.Clear();
+
         return nodesList.Select((node, i) =>
         {
             var vec = new[] { normalized[i].x, normalized[i].y, normalized[i].z };
-            
-            if (_nodeMapper.TryGetDocumentId(node.Id, out var docId) && 
+            _umapCoordinateCache[node.Id] = vec;
+
+            if (_nodeMapper.TryGetDocumentId(node.Id, out var docId) &&
                 docId != null &&
                 _documentRepository.TryGetDocument(docId, out var doc) &&
                 doc != null)
@@ -86,7 +93,7 @@ public sealed class VectorService : IVectorService
     }
 
     /// <summary>
-    /// Return the HNSW Nodes in the data index
+    /// Return the index with reduced dimensions using PCA.
     /// </summary>
     /// <returns></returns>
     public Task<Dictionary<int, PCANode>> GetPCANodes()
@@ -212,6 +219,12 @@ public sealed class VectorService : IVectorService
         });
     }
 
+    /// <summary>
+    /// Adds a document to the network, and will also persist the document.
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <param name="indexChunks"></param>
+    /// <returns></returns>
     public async Task AddDocument(DocumentModel doc, bool indexChunks = true)
     {
         // Persist document
@@ -234,24 +247,21 @@ public sealed class VectorService : IVectorService
         }
     }
 
+    /// <summary>
+    /// Search through UMAP, if a node is a 100% hit it will give the query the coordinates 
+    /// of that node.
+    /// </summary>
+    /// <param name="query"></param>
+    /// <param name="k"></param>
+    /// <returns></returns>
     public async Task<SearchResponse> SearchUmap(string query, int k = 5)
     {
         var queryVector = _embeddingModel.GetEmbeddings(query, isQuery: true);
-        var rawQuery3D = await _umapConverter.TransformQueryAsync(queryVector);
 
-        float[] query3D;
-        if (_umapNormParams != null)
-        {
-            query3D = _normalizer.ApplyNormalization(rawQuery3D, _umapNormParams);
-        }
-        else
-        {
-            query3D = rawQuery3D;
-        }
-
+        // Find nearest neighbors first
         var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, k);
-
         var hits = new List<SearchHit>(nearestIds.Count);
+
         foreach (var id in nearestIds)
         {
             if (!_dataIndex.Nodes.TryGetValue(id, out var node)) continue;
@@ -276,19 +286,37 @@ public sealed class VectorService : IVectorService
             }
         }
 
-        // Group by document, take best chunk per document
+        // Identify the best hits
         var bestHits = hits
             .GroupBy(h => h.DocumentId)
             .Select(g => g.OrderByDescending(h => h.Similarity).First())
             .OrderByDescending(h => h.Similarity)
             .ToList();
 
-        var orderedDistinctDocs = bestHits.Select(h => h.Document).ToList();
+        float[] query3D;
+        var topHit = bestHits.FirstOrDefault();
+
+
+        // Check if we have a perfect match AND if that node exists in our visual cache
+        if (topHit != null && topHit.Similarity > 0.99f && _umapCoordinateCache.TryGetValue(topHit.NodeId, out var cachedPos))
+        {
+            // Use the exact coordinates from the dictionary.
+            // No Python API call needed.
+            query3D = cachedPos;
+        }
+        else
+        {
+            // If it's a new or unique query, project it via UMAP service
+            var rawQuery3D = await _umapConverter.TransformQueryAsync(queryVector);
+            query3D = _umapNormParams != null
+                ? _normalizer.ApplyNormalization(rawQuery3D, _umapNormParams)
+                : rawQuery3D;
+        }
 
         return new SearchResponse
         {
             QueryPosition = query3D,
-            Documents = orderedDistinctDocs,
+            Documents = bestHits.Select(h => h.Document).ToList(),
             ResultNodeIds = bestHits.Select(h => h.NodeId).ToList(),
             Results = bestHits
         };
