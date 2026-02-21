@@ -1,10 +1,5 @@
 # SimiliVec: Custom Vector Database
 
-[![Status Badge](https://img.shields.io/badge/Status-In%20Development-blue)](https://github.com/your-username/SimiliVec) 
-[![Language Badge](https://img.shields.io/badge/Built%20With-C%23-darkgreen)](https://docs.microsoft.com/en-us/dotnet/csharp/)
-
-> ** STUDENT PROJECT WARNING ** > This project is a proof-of-concept and learning exercise. It is **NOT** production-ready and lacks critical features like persistence and concurrency.
-
 ---
 
 ## Project Overview
