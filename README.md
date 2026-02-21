@@ -21,7 +21,7 @@
 *  High-performance **HNSW** index implementation.
 *  Native integration with the **E5** embedding model.
 *  Simple API for vector insertion and similarity search.
-*  PCA Conversion for visualization of the database.
+*  PCA Conversion for visualization of the database (Getting replaced by UMAP).
 
 ---
 
@@ -67,3 +67,9 @@
 4. **Access the API:**
    - Swagger UI: http://localhost:5202/swagger
    - API Endpoint: http://localhost:5202/api
+
+
+## License & Credits
+This project is MIT licensed. 
+Third-party components (UMAP and E5-small-v2) are used under their respective licenses. 
+See [CREDITS.md](./CREDITS.md) for full details and citations.
