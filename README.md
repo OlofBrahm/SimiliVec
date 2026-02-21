@@ -64,11 +64,12 @@
    dotnet run
    ```
 
+4. **Access the API:**
+   - Swagger UI: http://localhost:5202/swagger
+   - API Endpoint: http://localhost:5202/api
+
+
 ## License & Credits
 This project is [Your License, e.g., MIT] licensed. 
 Third-party components (UMAP and E5-small-v2) are used under their respective licenses. 
 See [CREDITS.md](./CREDITS.md) for full details and citations.
-
-4. **Access the API:**
-   - Swagger UI: http://localhost:5202/swagger
-   - API Endpoint: http://localhost:5202/api
