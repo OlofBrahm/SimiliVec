@@ -1,6 +1,5 @@
 # SimiliVec: Custom Vector Database
 
----
 
 ## Project Overview
 
