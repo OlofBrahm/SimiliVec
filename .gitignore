@@ -15,3 +15,8 @@ venv/
 **/.venv/
 **/__pycache__/
 node_modules
+# Allow native library dependencies
+!**/runtimes/**/*.dll
+!**/runtimes/**/*.so
+!uwot.dll
+!libuwot.so
