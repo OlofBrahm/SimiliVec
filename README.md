@@ -10,7 +10,7 @@
 * **Neural Embeddings:** Integrated support for the **E5 Transformer model**, transforming text into high-quality vector representations directly within the .NET ecosystem using ONNX Runtime.
 * **Hybrid Dimension Reduction:**
     * **PCA (Linear):** Handled natively in C# using the **Microsoft.ML** library for fast, deterministic linear projection.
-    * **UMAP (Non-Linear):** Managed by a dedicated **Python-based microservice** to leverage the `umap-learn` ecosystem for complex manifold approximation.
+    * **UMAP (Non-Linear):** Implemented natively in C# via UMAPuwotSharp, removing the need for external Python dependencies while maintaining complex manifold approximation.
 * **Interactive Dashboard (React):** A modern frontend built to visualize vector clusters in 3D space, enabling users to interact with data and validate search results visually.
 
 ---
@@ -60,21 +60,18 @@
    npm install
    npm run dev
    ```
-5. **Start the UMAP-service (python):**
-   ```bash
-   cd services/umap-services
-   pip install -r requirements.txt
-   python main.py
-   ```
+
 ---
 ## Project Structure
 * **SimiliVec.Api:** The C# ASP.NET Core backend and entry point.
 * **ReactFront/SimiliVecReact:** Modern React frontend for vector visualization.
 * **VectorDataBase:** Core logic for the custom vector database, E5 embedding model and PCA conversion.
-* **Services/umap-services:** Python-based Flask/FastAPI service for UMAP reduction.
+   - **HNSW Indexing:** Custom implementation of hierarchical navigable small worlds.
+   - **E5 Embeddings:** ONNX-based transformer integration.
+   - **Dimensionality Reduction:** Native C# implementations for both PCA and UMAP.
 
 ---
 ## License & Credits
-This project is MIT licensed. 
-Third-party components (UMAP and E5-small-v2) are used under their respective licenses. 
-See [CREDITS.md](./CREDITS.md) for full details and citations.
+This project is MIT licensed.
+Third-party components (UMAPuwotSharp and E5-small-v2) are used under their respective licenses.
+See CREDITS.md for full details and citations.
