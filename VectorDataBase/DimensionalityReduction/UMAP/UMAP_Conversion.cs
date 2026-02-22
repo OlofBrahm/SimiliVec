@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VectorDataBase.Core;
 using System.Threading;
+using System.Reflection.Metadata.Ecma335;
 
 namespace VectorDataBase.DimensionalityReduction.UMAP;
 
@@ -49,8 +50,12 @@ public class UmapConversion
         {
             return await Task.Run(() =>
             {
-                // Store training data for k-NN interpolation (workaround for broken Transform)
-                _trainingVectors = new Dictionary<int, float[]>();
+                if (_trainingVectors == null || _trainingVectors.Count == 0)
+                {
+                    // Store training data for k-NN interpolation (workaround for broken Transform)
+                    _trainingVectors = new Dictionary<int, float[]>();
+                }
+
                 for (int i = 0; i < rowCount; i++)
                 {
                     var vec = new float[dimCount];
@@ -60,8 +65,10 @@ public class UmapConversion
                     }
                     _trainingVectors[i] = vec;
                 }
-
-                _trainedModel = new UMapModel();
+                if (_trainedModel == null)
+                {
+                    _trainedModel = new UMapModel();
+                }
                 float[,] embedding = _trainedModel.FitWithProgress(
                     data: trainingData,
                     progressCallback: (phase, current, total, percent, message) =>
@@ -70,7 +77,7 @@ public class UmapConversion
                     },
                     embeddingDimension: 3,
                     metric: DistanceMetric.Cosine
-                    // Using HNSW (forceExactKnn=false by default)
+                // Using HNSW (forceExactKnn=false by default)
                 );
 
                 // Convert output back to List<list<float>> for the api
@@ -79,10 +86,10 @@ public class UmapConversion
                 {
                     result.Add(new List<float> { embedding[i, 0], embedding[i, 1], embedding[i, 2] });
                 }
-                
+
                 // Store 3D coordinates for k-NN interpolation
                 _training3DCoords = result;
-                
+
                 // Debug: Check training coordinate ranges
                 if (result.Count > 0)
                 {
@@ -94,7 +101,7 @@ public class UmapConversion
                     var maxZ = result.Max(r => r[2]);
                     Console.WriteLine($"[UMAP Training Coords] X:[{minX:F2}, {maxX:F2}], Y:[{minY:F2}, {maxY:F2}], Z:[{minZ:F2}, {maxZ:F2}]");
                 }
-                
+
                 return result;
             });
         }
@@ -104,6 +111,14 @@ public class UmapConversion
         }
     }
 
+    public async Task<List<List<float>>> GetUmapNodesAsync()
+    {
+        if(_training3DCoords != null)
+        {
+            return _training3DCoords;
+        }
+        throw new InvalidOperationException("Need to run GetUmapProjection first");
+    }
     public async Task<float[]> TransformQueryAsync(float[] vector)
     {
         await _lock.WaitAsync();
@@ -139,7 +154,7 @@ public class UmapConversion
                 }
 
                 var nearestNeighbors = distances.OrderBy(d => d.distance).Take(k).ToList();
-                
+
                 Console.WriteLine($"[UMAP k-NN Interpolation] Using {k} nearest neighbors, closest distance: {nearestNeighbors[0].distance:F4}");
 
                 // Weighted average of neighbors' 3D positions (inverse distance weighting)

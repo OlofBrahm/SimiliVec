@@ -95,6 +95,53 @@ public sealed class VectorService : IVectorService
     }
 
     /// <summary>
+    /// Returns the index with reduced dimensions using UMAP.
+    /// </summary>
+    /// <returns></returns>
+    public async Task<List<UmapNode>> GetUmapCalculatedNodes()
+    {
+        var nodesList = _dataIndex.Nodes.Values.OrderBy(n => n.Id).ToList();
+
+        if (nodesList.Count == 0) return new List<UmapNode>();
+
+        var coords = await _umapConverter.GetUmapNodesAsync();
+
+        //Normalize 3D space
+        var (normalized, normParams) = _normalizer.Normalize3D(coords);
+        this._umapNormParams = normParams;
+
+        _umapCoordinateCache.Clear();
+
+        return nodesList.Select((node, i) =>
+        {
+            var vec = new[] { normalized[i].x, normalized[i].y, normalized[i].z };
+            _umapCoordinateCache[node.Id] = vec;
+
+            if (_nodeMapper.TryGetDocumentId(node.Id, out var docId) &&
+                docId != null &&
+                _documentRepository.TryGetDocument(docId, out var doc) &&
+                doc != null)
+            {
+                return new UmapNode
+                {
+                    Id = node.Id,
+                    DocumentId = doc.Id,
+                    Content = doc.Content,
+                    ReducedVector = vec
+                };
+            }
+
+            return new UmapNode
+            {
+                Id = node.Id,
+                DocumentId = "",
+                Content = "",
+                ReducedVector = vec
+            };
+        }).ToList();
+    }
+
+    /// <summary>
     /// Return the index with reduced dimensions using PCA.
     /// </summary>
     /// <returns></returns>

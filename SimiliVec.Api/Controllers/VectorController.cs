@@ -54,7 +54,7 @@ public class VectorController : ControllerBase
     {
         try
         {
-            var nodes = await _vectorService.GetUmapNodes();
+            var nodes = await _vectorService.GetUmapCalculatedNodes();
             if(nodes == null || nodes.Count == 0)
             {
                 return Ok(new List<object>()); //Returns a empty list instead of throwing error

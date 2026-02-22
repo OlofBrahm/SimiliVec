@@ -14,4 +14,5 @@ public interface IVectorService
     Task<Dictionary<int, PCANode>> GetPCANodes();
     Task AddDocument(DocumentModel doc, bool indexChunks = true);
     Task<List<UmapNode>> GetUmapNodes();
+    Task<List<UmapNode>> GetUmapCalculatedNodes();
 }
