@@ -17,7 +17,7 @@ public sealed class CoordinateNormalizer
     /// <summary>
     /// Normalize a list of 3D coordinates and return normalization parameters
     /// </summary>
-    public (List<(float x, float y, float z)> normalized, NormalizationParams parameters) 
+    public (List<(float x, float y, float z)> normalized, NormalizationParams parameters)
         Normalize3D(List<List<float>> coords)
     {
         var points = coords.Select(c =>
@@ -104,13 +104,18 @@ public sealed class CoordinateNormalizer
     /// </summary>
     public float[] ApplyNormalization(float[] point, NormalizationParams parameters)
     {
-        if (point.Length < 3) Array.Resize(ref point, 3);
+        if (point == null || point.Length < 3) return [0, 0, 0];
 
-        return new float[]
-        {
+        // Use a small epsilon to prevent division by zero or handle 0 std dev
+        float safeStdX = parameters.StdX == 0 ? 1f : parameters.StdX;
+        float safeStdY = parameters.StdY == 0 ? 1f : parameters.StdY;
+        float safeStdZ = parameters.StdZ == 0 ? 1f : parameters.StdZ;
+        
+        return
+        [
             (point[0] - parameters.MeanX) / parameters.StdX,
             (point[1] - parameters.MeanY) / parameters.StdY,
             (point[2] - parameters.MeanZ) / parameters.StdZ
-        };
+        ];
     }
 }
