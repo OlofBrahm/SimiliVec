@@ -74,4 +74,4 @@
 ## License & Credits
 This project is MIT licensed.
 Third-party components (UMAPuwotSharp and E5-small-v2) are used under their respective licenses.
-See CREDITS.md for full details and citations.
+See [CREDITS.md](./CREDITS.md)  for full details and citations.
