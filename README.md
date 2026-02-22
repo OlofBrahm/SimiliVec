@@ -62,16 +62,28 @@
    ```
 
 ---
+
 ## Project Structure
-* **SimiliVec.Api:** The C# ASP.NET Core backend and entry point.
-* **ReactFront/SimiliVecReact:** Modern React frontend for vector visualization.
-* **VectorDataBase:** Core logic for the custom vector database, E5 embedding model and PCA conversion.
-   - **HNSW Indexing:** Custom implementation of hierarchical navigable small worlds.
-   - **E5 Embeddings:** ONNX-based transformer integration.
-   - **Dimensionality Reduction:** Native C# implementations for both PCA and UMAP.
+
+* **SimiliVec.Api:** The ASP.NET Core 9.0 entry point, providing high-performance REST endpoints for vector management, semantic search, and visualization data.
+* **ReactFront/SimiliVecReact:** A high-performance 3D visualization dashboard built with React and Three.js to render and navigate large-scale vector clusters.
+* **VectorDataBase (Core Library):** The engine room of the project, containing:
+    * **HNSW Indexing:** A native C# implementation of Hierarchical Navigable Small Worlds for efficient $O(\log N)$ similarity search.
+    * **E5 Embeddings:** Local transformer inference using **ONNX Runtime**, eliminating the need for external LLM API costs.
+    * **Native Dimensionality Reduction:** * **PCA:** Fast, linear reduction for global data structure preservation.
+        * **UMAP:** Non-linear manifold learning via native C# integration for complex cluster discovery.
+
+
 
 ---
+
 ## License & Credits
-This project is MIT licensed.
-Third-party components (UMAPuwotSharp and E5-small-v2) are used under their respective licenses.
-See [CREDITS.md](./CREDITS.md)  for full details and citations.
+
+This project is released under the **MIT License**. See the [LICENSE](./LICENSE) file for the full text.
+
+**Third-Party Credits:**
+* **UMAPuwotSharp:** Native .NET port of the UMAP algorithm.
+* **E5-small-v2:** Text embedding model provided by Microsoft/intfloat.
+* **ML.NET:** Powering the native PCA implementation.
+
+For detailed academic citations and third-party license notices, please refer to [CREDITS.md](./CREDITS.md).
