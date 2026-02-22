@@ -10,7 +10,7 @@
 * **Neural Embeddings:** Integrated support for the **E5 Transformer model**, transforming text into high-quality vector representations directly within the .NET ecosystem using ONNX Runtime.
 * **Hybrid Dimension Reduction:**
     * **PCA (Linear):** Handled natively in C# using the **Microsoft.ML** library for fast, deterministic linear projection.
-    * **UMAP (Non-Linear):** Managed by a dedicated **Python-based microservice** to leverage the `umap-learn` ecosystem for complex manifold approximation.
+    * **UMAP (Non-Linear):** Implemented natively in C# via UMAPuwotSharp, removing the need for external Python dependencies while maintaining complex manifold approximation.
 * **Interactive Dashboard (React):** A modern frontend built to visualize vector clusters in 3D space, enabling users to interact with data and validate search results visually.
 
 ---
@@ -60,21 +60,31 @@
    npm install
    npm run dev
    ```
-5. **Start the UMAP-service (python):**
-   ```bash
-   cd services/umap-services
-   pip install -r requirements.txt
-   python main.py
-   ```
----
-## Project Structure
-* **SimiliVec.Api:** The C# ASP.NET Core backend and entry point.
-* **ReactFront/SimiliVecReact:** Modern React frontend for vector visualization.
-* **VectorDataBase:** Core logic for the custom vector database, E5 embedding model and PCA conversion.
-* **Services/umap-services:** Python-based Flask/FastAPI service for UMAP reduction.
 
 ---
+
+## Project Structure
+
+* **SimiliVec.Api:** The ASP.NET Core 9.0 entry point, providing high-performance REST endpoints for vector management, semantic search, and visualization data.
+* **ReactFront/SimiliVecReact:** A high-performance 3D visualization dashboard built with React and Three.js to render and navigate large-scale vector clusters.
+* **VectorDataBase (Core Library):** The engine room of the project, containing:
+    * **HNSW Indexing:** A native C# implementation of Hierarchical Navigable Small Worlds for efficient $O(\log N)$ similarity search.
+    * **E5 Embeddings:** Local transformer inference using **ONNX Runtime**, eliminating the need for external LLM API costs.
+    * **Native Dimensionality Reduction:**
+        * **PCA:** Fast, linear reduction for global data structure preservation.
+        * **UMAP:** Non-linear manifold learning via native C# integration for complex cluster discovery.
+
+
+
+---
+
 ## License & Credits
-This project is MIT licensed. 
-Third-party components (UMAP and E5-small-v2) are used under their respective licenses. 
-See [CREDITS.md](./CREDITS.md) for full details and citations.
+
+This project is released under the **MIT License**. See the [LICENSE](./LICENSE) file for the full text.
+
+**Third-Party Credits:**
+* **UMAPuwotSharp:** Native .NET port of the UMAP algorithm.
+* **E5-small-v2:** Text embedding model provided by Microsoft/intfloat.
+* **ML.NET:** Powering the native PCA implementation.
+
+For detailed academic citations and third-party license notices, please refer to [CREDITS.md](./CREDITS.md).
