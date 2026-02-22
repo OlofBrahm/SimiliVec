@@ -33,6 +33,9 @@ WORKDIR /app
 # Copy published app (should already include native libraries via .props file)
 COPY --from=publish /app/publish .
 
+# EXPLICITLY copy UMAP native libraries (failsafe)
+COPY --from=publish /app/publish/runtimes ./runtimes
+
 # Create MLModels directory structure
 RUN mkdir -p ./MLModels/e5-small-v2
 

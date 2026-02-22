@@ -60,9 +60,27 @@ try
     var indexTask = vectorService.IndexDocument();
     indexTask.Wait(); // Block and wait for indexing to complete
     Console.WriteLine("Pre-startup: Documents indexed on startup successfully.");
+    
     Console.WriteLine("Pre-startup: Training PCA model");
     var initialPCANodes = await vectorService.GetPCANodes();
     Console.WriteLine($"Pre-startup: PCA Model trained on {initialPCANodes.Count}");
+    
+    // ADD THIS: Pre-train UMAP model on startup
+    Console.WriteLine("Pre-startup: Training UMAP model...");
+    try 
+    {
+        var initialUMAPNodes = await vectorService.GetUmapNodes();
+        Console.WriteLine($"Pre-startup: UMAP Model trained on {initialUMAPNodes.Count} nodes");
+    }
+    catch (Exception umapEx)
+    {
+        Console.WriteLine($"❌ Pre-startup UMAP training failed: {umapEx.Message}");
+        Console.WriteLine($"Stack trace: {umapEx.StackTrace}");
+        if (umapEx.InnerException != null)
+        {
+            Console.WriteLine($"Inner exception: {umapEx.InnerException.Message}");
+        }
+    }
 }
 catch (Exception ex)
 {
