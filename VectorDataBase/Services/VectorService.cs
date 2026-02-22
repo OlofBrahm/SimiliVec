@@ -53,13 +53,15 @@ public sealed class VectorService : IVectorService
     /// <returns></returns>
     public async Task<List<UmapNode>> GetUmapNodes()
     {
-        var nodesList = _dataIndex.Nodes.Values.ToList();
-        var vectors = nodesList.Select(n => n.Vector).ToArray();
+        var nodesList = _dataIndex.Nodes.Values.OrderBy(n => n.Id).ToList();
 
-        var coords = await _umapConverter.FitAndProjectAsync(vectors);
+        if (nodesList.Count == 0) return new List<UmapNode>();
 
+        var coords = await _umapConverter.GetUmapProjectionAsync(_dataIndex.Nodes);
+
+        //Normalize 3D space
         var (normalized, normParams) = _normalizer.Normalize3D(coords);
-        _umapNormParams = normParams;
+        this._umapNormParams = normParams;
 
         _umapCoordinateCache.Clear();
 
@@ -306,13 +308,19 @@ public sealed class VectorService : IVectorService
         }
         else
         {
-            // If it's a new or unique query, project it via UMAP service
             var rawQuery3D = await _umapConverter.TransformQueryAsync(queryVector);
-            query3D = _umapNormParams != null
-                ? _normalizer.ApplyNormalization(rawQuery3D, _umapNormParams)
-                : rawQuery3D;
+            Console.WriteLine($"QUERY POS BEFORE NORMALIZATION: X:{rawQuery3D[0]}, Y:{rawQuery3D[1]}, Z:{rawQuery3D[2]}");
+            if(_umapNormParams != null)
+            {
+                var norm = _normalizer.ApplyNormalization(rawQuery3D, _umapNormParams);
+                query3D = new float[] {norm[0], norm[1], norm[2]};
+            }
+            else
+            {
+                query3D = rawQuery3D;
+            }
         }
-
+        Console.WriteLine($"QUERY POS: X:{query3D[0]}, Y:{query3D[1]}, Z:{query3D[2]}");
         return new SearchResponse
         {
             QueryPosition = query3D,
