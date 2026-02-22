@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Hosting.Builder;
+using System.Runtime.InteropServices;
 using VectorDataBase.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -67,18 +67,54 @@ try
     
     // ADD THIS: Pre-train UMAP model on startup
     Console.WriteLine("Pre-startup: Training UMAP model...");
-    try 
+    
+    // Check if native library exists
+    var isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+    var libPath = isLinux ? "libuwot.so" : "uwot.dll";
+    var searchDirs = new[] { 
+        "/app",
+        "/app/runtimes/linux-x64/native",
+        AppContext.BaseDirectory,
+        Path.Combine(AppContext.BaseDirectory, "runtimes/linux-x64/native")
+    };
+    
+    bool foundLib = false;
+    foreach (var dir in searchDirs)
     {
-        var initialUMAPNodes = await vectorService.GetUmapNodes();
-        Console.WriteLine($"Pre-startup: UMAP Model trained on {initialUMAPNodes.Count} nodes");
-    }
-    catch (Exception umapEx)
-    {
-        Console.WriteLine($"❌ Pre-startup UMAP training failed: {umapEx.Message}");
-        Console.WriteLine($"Stack trace: {umapEx.StackTrace}");
-        if (umapEx.InnerException != null)
+        var fullPath = Path.Combine(dir, libPath);
+        if (File.Exists(fullPath))
         {
-            Console.WriteLine($"Inner exception: {umapEx.InnerException.Message}");
+            Console.WriteLine($"✅ Found UMAP native library at: {fullPath}");
+            foundLib = true;
+            break;
+        }
+    }
+    
+    if (!foundLib)
+    {
+        Console.WriteLine($"❌ CRITICAL: {libPath} not found in any expected location!");
+        Console.WriteLine("Searched directories:");
+        foreach (var dir in searchDirs)
+        {
+            Console.WriteLine($"  - {dir}");
+        }
+        Console.WriteLine("UMAP will be unavailable.");
+    }
+    else
+    {
+        try 
+        {
+            var initialUMAPNodes = await vectorService.GetUmapNodes();
+            Console.WriteLine($"✅ Pre-startup: UMAP Model trained on {initialUMAPNodes.Count} nodes");
+        }
+        catch (Exception umapEx)
+        {
+            Console.WriteLine($"❌ Pre-startup UMAP training failed: {umapEx.Message}");
+            Console.WriteLine($"Stack trace: {umapEx.StackTrace}");
+            if (umapEx.InnerException != null)
+            {
+                Console.WriteLine($"Inner exception: {umapEx.InnerException.Message}");
+            }
         }
     }
 }
