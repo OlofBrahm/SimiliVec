@@ -84,7 +84,7 @@ try
         var fullPath = Path.Combine(dir, libPath);
         if (File.Exists(fullPath))
         {
-            Console.WriteLine($"✅ Found UMAP native library at: {fullPath}");
+            Console.WriteLine($"Found UMAP native library at: {fullPath}");
             foundLib = true;
             break;
         }
@@ -92,7 +92,7 @@ try
     
     if (!foundLib)
     {
-        Console.WriteLine($"❌ CRITICAL: {libPath} not found in any expected location!");
+        Console.WriteLine($"CRITICAL: {libPath} not found in any expected location!");
         Console.WriteLine("Searched directories:");
         foreach (var dir in searchDirs)
         {
@@ -105,11 +105,11 @@ try
         try 
         {
             var initialUMAPNodes = await vectorService.GetUmapNodes();
-            Console.WriteLine($"✅ Pre-startup: UMAP Model trained on {initialUMAPNodes.Count} nodes");
+            Console.WriteLine($"Pre-startup: UMAP Model trained on {initialUMAPNodes.Count} nodes");
         }
         catch (Exception umapEx)
         {
-            Console.WriteLine($"❌ Pre-startup UMAP training failed: {umapEx.Message}");
+            Console.WriteLine($"Pre-startup UMAP training failed: {umapEx.Message}");
             Console.WriteLine($"Stack trace: {umapEx.StackTrace}");
             if (umapEx.InnerException != null)
             {
