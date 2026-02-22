@@ -277,7 +277,7 @@ public sealed class VectorService : IVectorService
     public async Task AddDocument(DocumentModel doc, bool indexChunks = true)
     {
         // Persist document
-        await _documentRepository.SaveDocumentAsync(doc);
+        //await _documentRepository.SaveDocumentAsync(doc);
 
         if (!indexChunks) return;
 
