@@ -70,7 +70,8 @@
 * **VectorDataBase (Core Library):** The engine room of the project, containing:
     * **HNSW Indexing:** A native C# implementation of Hierarchical Navigable Small Worlds for efficient $O(\log N)$ similarity search.
     * **E5 Embeddings:** Local transformer inference using **ONNX Runtime**, eliminating the need for external LLM API costs.
-    * **Native Dimensionality Reduction:** * **PCA:** Fast, linear reduction for global data structure preservation.
+    * **Native Dimensionality Reduction:**
+        * **PCA:** Fast, linear reduction for global data structure preservation.
         * **UMAP:** Non-linear manifold learning via native C# integration for complex cluster discovery.
 
 
