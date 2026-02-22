@@ -83,8 +83,8 @@ public class VectorController : ControllerBase
             MetaData = input.MetaData ?? new Dictionary<string, string>()
         };
 
+        Console.WriteLine("Trying to index document");
         await _vectorService.AddDocument(doc, indexChunks: true);
-        await GetUmapNodes();
         return Ok(new { id = doc.Id });
     }
     [HttpPost("search/umap")]

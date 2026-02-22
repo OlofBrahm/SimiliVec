@@ -65,10 +65,9 @@ public class UmapConversion
                     }
                     _trainingVectors[i] = vec;
                 }
-                if (_trainedModel == null)
-                {
-                    _trainedModel = new UMapModel();
-                }
+
+                _trainedModel = new UMapModel();
+                
                 float[,] embedding = _trainedModel.FitWithProgress(
                     data: trainingData,
                     progressCallback: (phase, current, total, percent, message) =>
