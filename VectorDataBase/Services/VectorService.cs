@@ -357,6 +357,15 @@ public sealed class VectorService : IVectorService
         };
     }
 
+
+    /// <summary>
+    /// Calculates a visual node based on the k closest nodes and distance, to make the visualization consistant.
+    /// Power param decides how much "gravitational" pull the closest node have, 1 gives a blurry interpolation, 2 is balanced and 3 and 4 is intense.
+    /// </summary>
+    /// <param name="hits"></param>
+    /// <param name="cache"></param>
+    /// <param name="power"></param>
+    /// <returns></returns>
     private float[] CalculateVisualPosition(List<SearchHit> hits, Dictionary<int, float[]> cache, int power = 2)
     {
         if (hits == null || !hits.Any()) return new float[] { 0, 0, 0 };
