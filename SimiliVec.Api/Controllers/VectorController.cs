@@ -54,38 +54,63 @@ public class VectorController : ControllerBase
     {
         try
         {
+            var totalNodes = _vectorService.GetDocuments().Count;
+            Console.WriteLine($"[GetUmapNodes] Total documents: {totalNodes}");
+            
+            // UMAP needs minimum 3 nodes
+            if (totalNodes < 3)
+            {
+                Console.WriteLine("[GetUmapNodes] Not enough nodes for UMAP, returning empty list");
+                return Ok(new List<object>());
+            }
+
             var nodes = await _vectorService.GetUmapCalculatedNodes();
+            Console.WriteLine($"[GetUmapNodes] Successfully retrieved {nodes?.Count ?? 0} UMAP nodes");
+            
             if(nodes == null || nodes.Count == 0)
             {
-                return Ok(new List<object>()); //Returns a empty list instead of throwing error
+                return Ok(new List<object>());
             }
             return Ok(nodes);
         }
         catch(InvalidOperationException ex)
         {
-            return BadRequest($"Cannot perfom PCA: {ex.Message}");
+            Console.WriteLine($"[GetUmapNodes] InvalidOperation: {ex.Message}");
+            return BadRequest($"Cannot perform UMAP: {ex.Message}");
         }
         catch (Exception ex)
         {
-            return StatusCode(503, $"UMAP Service unavailible: {ex.Message}");
+            Console.WriteLine($"[GetUmapNodes] ERROR: {ex.Message}");
+            Console.WriteLine($"[GetUmapNodes] Stack: {ex.StackTrace}");
+            return StatusCode(503, new { error = $"UMAP Service unavailable: {ex.Message}", details = ex.StackTrace });
         }
     }
     [HttpPost("documents")]
     public async Task<IActionResult> AddDocument([FromBody] DocumentModel input)
     {
-        if (input == null || string.IsNullOrWhiteSpace(input.Id) || string.IsNullOrWhiteSpace(input.Content))
-            return BadRequest("Id and Content are required.");
-
-        var doc = new DocumentModel
+        try
         {
-            Id = input.Id.Trim(),
-            Content = input.Content,
-            MetaData = input.MetaData ?? new Dictionary<string, string>()
-        };
+            if (input == null || string.IsNullOrWhiteSpace(input.Id) || string.IsNullOrWhiteSpace(input.Content))
+                return BadRequest("Id and Content are required.");
 
-        await _vectorService.AddDocument(doc, indexChunks: true);
-        await GetUmapNodes();
-        return Ok(new { id = doc.Id });
+            var doc = new DocumentModel
+            {
+                Id = input.Id.Trim(),
+                Content = input.Content,
+                MetaData = input.MetaData ?? new Dictionary<string, string>()
+            };
+
+            Console.WriteLine($"[AddDocument] Starting to add document: {doc.Id}");
+            await _vectorService.AddDocument(doc, indexChunks: true);
+            Console.WriteLine($"[AddDocument] Successfully added document: {doc.Id}");
+            return Ok(new { id = doc.Id, message = "Document added successfully" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AddDocument] ERROR: {ex.Message}");
+            Console.WriteLine($"[AddDocument] Stack trace: {ex.StackTrace}");
+            return StatusCode(500, new { error = ex.Message, stackTrace = ex.StackTrace });
+        }
     }
     [HttpPost("search/umap")]
     public async Task<IActionResult> SearchUmap([FromBody] string query, [FromQuery] int k = 5)

@@ -65,7 +65,6 @@ try
     var initialPCANodes = await vectorService.GetPCANodes();
     Console.WriteLine($"Pre-startup: PCA Model trained on {initialPCANodes.Count}");
     
-    // ADD THIS: Pre-train UMAP model on startup
     Console.WriteLine("Pre-startup: Training UMAP model...");
     
     // Check if native library exists

@@ -17,8 +17,8 @@ public static class ServiceCollectionExtensions
         // Core/index - register configured DataIndex instance
         services.AddSingleton<IDataIndex>(sp => new DataIndex
         {
-            MaxNeighbours = 4,
-            EfConstruction = 20,
+            MaxNeighbours = 16,
+            EfConstruction = 100,
             InverseLogM = 1.0f / 1.5f
         });
 
