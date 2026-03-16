@@ -70,6 +70,11 @@ public class EmbeddingModel : IEmbeddingModel
     /// <returns></returns>
     public float[] GetEmbeddings(string text, bool isQuery)
     {
+        //ENABLE THIS TO GET CORRECT EMBEDDINGS FOR QUERY VS PASSAGE, this will give a lower score but mroe accurate results, as the model was 
+        // trained with query: and passage: prefixes. You can experiment with this on/off to see the difference in results.
+
+        //var  formattedText = isQuery ? $"query: {text}" : $"passage: {text}";
+        //var (tokenIds, tokenTypeIds, attentionMask) = _tokenizer.Encode(formattedText, isQuery);
         var (tokenIds, tokenTypeIds, attentionMask) = _tokenizer.Encode(text, isQuery);
         var input = new InputData { 
             Inputids = tokenIds,

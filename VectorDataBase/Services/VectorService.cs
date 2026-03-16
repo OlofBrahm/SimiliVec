@@ -29,6 +29,11 @@ public sealed class VectorService : IVectorService
     private readonly Dictionary<int, float[]> _umapCoordinateCache = new();
     private readonly Dictionary<int, float[]> _pcaCoordinateCache = new();
 
+
+    private bool _pcaCacheDirty = true;
+
+    private const int maxChunkSize = 500;
+
     private CoordinateNormalizer.NormalizationParams? _umapNormParams;
     private CoordinateNormalizer.NormalizationParams? _pcaNormParams;
 
@@ -48,8 +53,6 @@ public sealed class VectorService : IVectorService
         _documentRepository = documentRepository;
         _nodeMapper = nodeMapper;
         _normalizer = normalizer;
-
-        IndexDocument();
     }
 
     /// <summary>
@@ -107,43 +110,80 @@ public sealed class VectorService : IVectorService
     {
         var nodesList = _dataIndex.Nodes.Values.OrderBy(n => n.Id).ToList();
 
-        if (nodesList.Count == 0) return new List<UmapNode>();
-
-        var coords = await _umapConverter.GetUmapNodesAsync();
-
-        //Normalize 3D space
-        var (normalized, normParams) = _normalizer.Normalize3D(coords);
-        this._umapNormParams = normParams;
-
-        _umapCoordinateCache.Clear();
-
-        return nodesList.Select((node, i) =>
+        if (nodesList.Count == 0) 
         {
-            var vec = new[] { normalized[i].x, normalized[i].y, normalized[i].z };
-            _umapCoordinateCache[node.Id] = vec;
+            Console.WriteLine("[GetUmapCalculatedNodes] No nodes available");
+            return new List<UmapNode>();
+        }
 
-            if (_nodeMapper.TryGetDocumentId(node.Id, out var docId) &&
-                docId != null &&
-                _documentRepository.TryGetDocument(docId, out var doc) &&
-                doc != null)
+        if (nodesList.Count < 3)
+        {
+            Console.WriteLine("[GetUmapCalculatedNodes] Not enough nodes for UMAP (need at least 3)");
+            return new List<UmapNode>();
+        }
+
+        try
+        {
+            Console.WriteLine($"[GetUmapCalculatedNodes] Processing {nodesList.Count} nodes");
+            
+            // Force recalculation with current nodes
+            var coords = await _umapConverter.GetUmapProjectionAsync(_dataIndex.Nodes);
+            
+            Console.WriteLine($"[GetUmapCalculatedNodes] Got {coords.Count} coordinates");
+            
+            if (coords == null || coords.Count == 0)
             {
+                Console.WriteLine("[GetUmapCalculatedNodes] UMAP returned no coordinates");
+                return new List<UmapNode>();
+            }
+
+            // Verify counts match
+            if (coords.Count != nodesList.Count)
+            {
+                Console.WriteLine($"[GetUmapCalculatedNodes] ERROR: Mismatch - {nodesList.Count} nodes but {coords.Count} coordinates");
+                throw new InvalidOperationException($"Node count ({nodesList.Count}) doesn't match coordinate count ({coords.Count})");
+            }
+
+            //Normalize 3D space
+            var (normalized, normParams) = _normalizer.Normalize3D(coords);
+            this._umapNormParams = normParams;
+
+            _umapCoordinateCache.Clear();
+
+            return nodesList.Select((node, i) =>
+            {
+                var vec = new[] { normalized[i].x, normalized[i].y, normalized[i].z };
+                _umapCoordinateCache[node.Id] = vec;
+
+                if (_nodeMapper.TryGetDocumentId(node.Id, out var docId) &&
+                    docId != null &&
+                    _documentRepository.TryGetDocument(docId, out var doc) &&
+                    doc != null)
+                {
+                    return new UmapNode
+                    {
+                        Id = node.Id,
+                        DocumentId = doc.Id,
+                        Content = doc.Content,
+                        ReducedVector = vec
+                    };
+                }
+
                 return new UmapNode
                 {
                     Id = node.Id,
-                    DocumentId = doc.Id,
-                    Content = doc.Content,
+                    DocumentId = "",
+                    Content = "",
                     ReducedVector = vec
                 };
-            }
-
-            return new UmapNode
-            {
-                Id = node.Id,
-                DocumentId = "",
-                Content = "",
-                ReducedVector = vec
-            };
-        }).ToList();
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetUmapCalculatedNodes] Error: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            throw;
+        }
     }
 
     /// <summary>
@@ -152,6 +192,7 @@ public sealed class VectorService : IVectorService
     /// <returns></returns>
     public Task<Dictionary<int, PCANode>> GetPCANodes()
     {
+        _pcaCoordinateCache.Clear();
         var nodes = _pcaConverter.ConvertToPCA(_dataIndex.Nodes);
 
         _pcaNormParams = _normalizer.NormalizePcaNodes(nodes);
@@ -168,6 +209,8 @@ public sealed class VectorService : IVectorService
                 }
             }
         }
+
+        _pcaCacheDirty = false;
         return Task.FromResult(nodes);
     }
 
@@ -184,9 +227,7 @@ public sealed class VectorService : IVectorService
     /// <returns></returns>
     public Task IndexDocument()
     {
-        const int maxChunkSize = 500;
         int totalChunks = 0;
-
         foreach (var document in _documentRepository.GetAllDocuments().Values)
         {
             var chunks = SimpleTextChunker.Chunk(document.Content, maxChunkSize);
@@ -213,10 +254,18 @@ public sealed class VectorService : IVectorService
     /// <param name="query"></param>
     /// <param name="k"></param>
     /// <returns>SearchResponse</returns>
-    public Task<SearchResponse> Search(string query, int k = 5)
+    public async Task<SearchResponse> Search(string query, int k = 5)
     {
+        if(_pcaCacheDirty || _pcaCoordinateCache.Count != _dataIndex.Nodes.Count)
+        {
+            await GetPCANodes(); // Rebuild PCA cache if dirty or if node count has changed
+            _pcaCacheDirty = false;
+        }
         var queryVector = _embeddingModel.GetEmbeddings(query, isQuery: true);
-        var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, k);
+
+        int rawK = Math.Max(k * 4, k + 10);
+        int efSearch = Math.Max(64, rawK * 4);
+        var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, rawK, efSearch);
 
         var hits = new List<SearchHit>(nearestIds.Count);
 
@@ -250,15 +299,16 @@ public sealed class VectorService : IVectorService
         .GroupBy(h => h.DocumentId)
         .Select(g => g.OrderByDescending(h => h.Similarity).First())
         .OrderByDescending(h => h.Similarity)
+        .Take(k)
         .ToList();
 
-        return Task.FromResult(new SearchResponse
+        return new SearchResponse
         {
             QueryPosition = query3D,
             Documents = bestHits.Select(h => h.Document).ToList(),
             ResultNodeIds = bestHits.Select(h => h.NodeId).ToList(),
             Results = bestHits
-        });
+        };
     }
 
     /// <summary>
@@ -270,13 +320,14 @@ public sealed class VectorService : IVectorService
     public async Task AddDocument(DocumentModel doc, bool indexChunks = true)
     {
         // Persist document
-        //await _documentRepository.SaveDocumentAsync(doc);
+        await _documentRepository.SaveDocumentAsync(doc);
 
         if (!indexChunks) return;
 
+        var insertedAny = false;
+
         // Chunk, embed, and index
-        const int maxChars = 1500;
-        var chunks = SimpleTextChunker.Chunk(doc.Content, maxChars);
+        var chunks = SimpleTextChunker.Chunk(doc.Content, maxChunkSize);
         foreach (var chunkText in chunks)
         {
             if (string.IsNullOrWhiteSpace(chunkText)) continue;
@@ -286,8 +337,15 @@ public sealed class VectorService : IVectorService
             var node = new HnswNode { Id = nodeId, Vector = vector };
             _dataIndex.Insert(node, _random);
             _nodeMapper.MapNodeToDocument(nodeId, doc.Id);
+            insertedAny = true;
 
-            // CRITICAL: Invalidate UMAP cache since we have new nodes
+        }
+        if (insertedAny)
+        {
+            _pcaCoordinateCache.Clear();
+            _pcaCacheDirty = true;
+            _pcaNormParams = null;
+
             _umapCoordinateCache.Clear();
             _umapNormParams = null;
         }
@@ -311,8 +369,10 @@ public sealed class VectorService : IVectorService
         
         var queryVector = _embeddingModel.GetEmbeddings(query, isQuery: true);
 
+        int rawK = Math.Max(k * 4, k + 10);
+        int efSearch = Math.Max(64, rawK * 4);
         // Find nearest neighbors first
-        var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, k);
+        var nearestIds = _dataIndex.FindNearestNeighbors(queryVector, rawK, efSearch);
         var hits = new List<SearchHit>(nearestIds.Count);
 
         foreach (var id in nearestIds)
@@ -346,6 +406,7 @@ public sealed class VectorService : IVectorService
         .GroupBy(h => h.DocumentId)
         .Select(g => g.OrderByDescending(h => h.Similarity).First())
         .OrderByDescending(h => h.Similarity)
+        .Take(k)
         .ToList();
 
         return new SearchResponse
