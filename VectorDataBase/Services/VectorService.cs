@@ -22,7 +22,7 @@ public sealed class VectorService : IVectorService
     private readonly IEmbeddingModel _embeddingModel;
     private readonly PCAConversion _pcaConverter;
     private readonly UmapConversion _umapConverter;
-    private readonly DocumentRepository _documentRepository;
+    private readonly IDocumentRepository _documentRepository;
     private readonly NodeDocumentMapper _nodeMapper;
     private readonly CoordinateNormalizer _normalizer;
     private readonly Random _random = Random.Shared;
@@ -42,7 +42,7 @@ public sealed class VectorService : IVectorService
         IEmbeddingModel embeddingModel,
         PCAConversion pcaConverter,
         UmapConversion umapConverter,
-        DocumentRepository documentRepository,
+        IDocumentRepository documentRepository,
         NodeDocumentMapper nodeMapper,
         CoordinateNormalizer normalizer)
     {

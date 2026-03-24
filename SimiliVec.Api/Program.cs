@@ -38,7 +38,16 @@ builder.Services.AddCors(options =>
                       });
 });
 
-builder.Services.AddVectorDataBaseServices();
+var useDemoMode = builder.Configuration.GetValue<bool>("VectorDb:UseDemoMode");
+
+if (useDemoMode)
+{
+    builder.Services.AddVectorDataBaseDemoServices();
+}
+else
+{
+    builder.Services.AddVectorDataBaseProductionServices();
+}
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

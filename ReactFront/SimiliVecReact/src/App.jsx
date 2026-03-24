@@ -6,15 +6,19 @@ import { Enviroment } from './components/Scene'
 import { VectorNode } from './components/VectorNode'
 import { QueryNode } from './components/QueryNode'
 import { PopoutSearch } from './components/PopoutSearch'
-import { PopoutMenu } from './components/PopoutMenu'
+import { PopoutMenu } from './components/AddDocument'
 import { SearchResults } from './components/SearchResults'
+import { HomeScreen } from './components/HomeScreen'
+import { Controls } from './components/Controls'
+import { NodeInfo } from './components/NodeInfo'
 import './App.css'
 
 
-const API_URL = "http://localhost:5202/api/vector"
+const GITHUB_URL = 'https://github.com/OlofBrahm/SimiliVec'
+const LINKEDIN_URL = 'https://www.linkedin.com/in/olofbrahm/'
 
 export default function App() {
-
+  const [showHome, setShowHome] = useState(true)
   const [nodes, setNodes] = useState([]);
   const [mode, setMode] = useState('standard');
   const [selectedNode, setSelectedNode] = useState(null);
@@ -22,29 +26,31 @@ export default function App() {
   const [algo, setAlgo] = useState('pca');
   const [queryPosition, setQueryPosition] = useState(null);
 
-  const loadNodes = async () => {
-    try {
-      let data;
-      if(algo === 'umap'){
-        data = await vectorApi.getUMAPNodes();
-      } else {
-        data = await vectorApi.getPCANodes();
-      }
-
-      const nodesArray = Array.isArray(data) ? data : Object.values(data);
-      const normalizedNodes = nodesArray.map(n => ({
-        ...n,
-        displayPos: n.reducedVector || [n.x, n.y, n.z || 0]
-      }));
-      setNodes(normalizedNodes);
-    } catch (error) {
-      console.error("Failed to fetch nodes:", error);
-    }
-  };
-
 
   useEffect(() => {
-    loadNodes();
+    const loadNodes = async () => {
+      try {
+        let data;
+        if (algo === 'umap') {
+          data = await vectorApi.getUMAPNodes();
+        } else {
+          data = await vectorApi.getPCANodes();
+        }
+
+        const nodesArray = Array.isArray(data) ? data : Object.values(data);
+        const normalizedNodes = nodesArray.map(n => ({
+          ...n,
+          displayPos: n.reducedVector || [n.x, n.y, n.z || 0]
+        }));
+        setNodes(normalizedNodes);
+      } catch (error) {
+        console.error("Failed to fetch nodes:", error);
+      }
+    };
+
+    (async () => {
+      await loadNodes();
+    })();
   }, [algo]);
 
   const handleSearch = async (queryText) => {
@@ -55,7 +61,7 @@ export default function App() {
 
       const pos = data.queryPosition;
       console.log("Query position received:", pos);
-      
+
       if (pos) {
         setQueryPosition(Array.isArray(pos) ? pos : [pos[0] ?? 0, pos[1] ?? 0, pos[2] ?? 0]);
       } else {
@@ -74,16 +80,60 @@ export default function App() {
     try {
       await vectorApi.addDocument(newDocument);
       console.log("Added document:", newDocument.id);
-      await loadNodes();
+      setAlgo(algo); // Trigger useEffect to reload nodes
     } catch (error) {
       console.error("Failed to add document:", error);
     }
   }
 
+  const handleContinue = () => {
+    setShowHome(false);
+  };
+
+  const handleLogoClick = () => {
+    setShowHome(true);
+  };
+
+  if (showHome) {
+    return (
+      <HomeScreen
+        onContinue={handleContinue}
+        githubUrl={GITHUB_URL}
+        linkedinUrl={LINKEDIN_URL}
+      />
+    )
+  }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+    <>
+      <header
+        className='logo'
+        onClick={handleLogoClick}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleLogoClick();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+      >
+        <img
+          src="src/assets/similivec.svg"
+          alt="SimiliVec"
+        />
+      </header>
 
+      <footer className='socials'>
+        <div className="logo-footer">
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+            <img src="src/assets/github.svg" alt="Github" />
+          </a>
+          <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+            <img src="src/assets/linkedin.svg" alt="LinkedIn" />
+          </a>
+        </div>
+      </footer>
       <SearchResults
         results={searchResults}
         onSelect={(hit) => {
@@ -91,40 +141,18 @@ export default function App() {
           if (node) {
             setSelectedNode(node);
           } else {
-            setSelectedNode({ 
-              id: hit.documentId ?? `node:${hit.nodeId}`, 
-              content: hit.document?.content ?? '' 
+            setSelectedNode({
+              id: hit.documentId ?? `node:${hit.nodeId}`,
+              content: hit.document?.content ?? ''
             });
           }
         }}
         onClose={() => setSearchResults([])}
       />
 
-      {selectedNode && (
-        <div className="node-info" style={infoBoxStyle}>
-          <button onClick={() => setSelectedNode(null)} style={closeButtonStyle}>×</button>
-          <h3>Node Details</h3>
-          <p><strong>ID:</strong> {selectedNode.id}</p>
-          <p><strong>Content:</strong> {selectedNode.content}</p>
-        </div>
-      )}
+      <NodeInfo node={selectedNode} onClose={() => setSelectedNode(null)} />
 
-      <div className="controls" style={{
-        position: 'absolute',
-        zIndex: 1,
-        top: 20,
-        left: 20
-      }}>
-        <select value={algo} onChange={(e) => setAlgo(e.target.value)}>
-          <option value="pca">PCA (Linear)</option>
-          <option value="umap">UMAP (clusters)</option>
-        </select>
-        <select value={mode} onChange={(e) => setMode(e.target.value)}>
-          <option value="standard">Standard</option>
-          <option value="nebula">Nebula</option>
-          <option value="blueprint">BluePrint</option>
-        </select>
-      </div>
+      <Controls algo={algo} setAlgo={setAlgo} mode={mode} setMode={setMode} />
 
       <div className="Search" style={{
         position: 'absolute',
@@ -151,37 +179,7 @@ export default function App() {
 
         <OrbitControls makeDefault />
       </Canvas>
-    </div>
+    </>
   )
 }
-
-const infoBoxStyle = {
-  position: 'absolute',
-  top: '80px',
-  right: '20px',
-  background: 'rgba(25, 25, 25, 0.9)',
-  backdropFilter: 'blur(8px)',
-  border: '1px solid #3c3c3c',
-  borderRadius: '10px',
-  color: 'white',
-  zIndex: 10,
-  display: 'flex',
-  flexDirection: 'column',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-  maxWidth: '300px',
-  padding: '10px'
-}
-
-const closeButtonStyle = {
-  position: 'absolute',
-  background: 'none',
-  fontFamily: 'sans-serif',
-  top: '10px',
-  right: '15px',
-  padding: '0px',
-  border: 'none',
-  color: '#888',
-  cursor: 'pointer',
-  fontSize: '1.2rem'
-};
 

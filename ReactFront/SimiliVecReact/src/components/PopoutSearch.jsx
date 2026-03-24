@@ -1,4 +1,5 @@
 import React,{useState, useEffect, useRef} from "react";
+import '../css/Popout.css';
 
 export const PopoutSearch = ({ onSearch }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -19,16 +20,15 @@ export const PopoutSearch = ({ onSearch }) => {
     }, []);
 
     return (
-        <div ref={menuRef} className="menu-container" style={{position: 'relative', display: 'inline-block'}}>
+        <div ref={menuRef} className="menu-container">
             <button onClick={() => setIsOpen(!isOpen)}>Search Vectors</button>
             {isOpen && (
-                <nav className="popout" style={navStyle}>
+                <nav className="popout popout-search">
                         <input
                         type="text"
                         placeholder="Search..."
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        style={{ padding: '5px' }}
                         />
                         <button onClick={() => onSearch(query)}>Submit Search</button>
                 </nav>
@@ -36,16 +36,3 @@ export const PopoutSearch = ({ onSearch }) => {
         </div>
     );
 };
-
-const navStyle = {
-    position: 'absolute',
-    background: '#222',
-    padding: '15px',
-    borderRadius: '8px',
-    bottom: '40px',
-    color: 'white',
-    display: 'flex',
-    flexDirection: 'coloumn',
-    gap: '10px',
-    zIndex: 100
-}

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using VectorDataBase.Models;
 using VectorDataBase.Interfaces;
@@ -12,18 +10,28 @@ namespace VectorDataBase.Repositories;
 /// <summary>
 /// Manages document storage, persistence, and retrieval
 /// </summary>
-public sealed class DocumentRepository
+public sealed class DocumentRepository : IDocumentRepository
 {
-    private readonly Dictionary<string, DocumentModel> _documentStorage = new();
-    private readonly string _docPath;
+    private readonly Dictionary<string, DocumentModel> _documentStorage;
+    private readonly IDocumentStore _documentStore;
 
-    public DocumentRepository(IDataLoader dataLoader)
+    public DocumentRepository(IDocumentStore documentStore)
     {
-        _docPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "SimiliVec", "documents.json");
+        _documentStore = documentStore ?? throw new ArgumentNullException(nameof(documentStore));
 
-        _documentStorage = dataLoader.LoadAllDocuments().ToDictionary(doc => doc.Id, doc => doc);
+        var loadedDocuments = _documentStore.LoadAllDocuments()?.ToList() ?? new List<DocumentModel>();
+        var duplicateIds = loadedDocuments
+            .GroupBy(doc => doc.Id)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (duplicateIds.Count > 0)
+        {
+            throw new InvalidOperationException($"Duplicate document IDs detected while loading documents: {string.Join(", ", duplicateIds)}");
+        }
+
+        _documentStorage = loadedDocuments.ToDictionary(doc => doc.Id, doc => doc);
     }
 
     /// <summary>
@@ -40,17 +48,13 @@ public sealed class DocumentRepository
     }
 
     /// <summary>
-    /// Add or update a document and persist to disk
+    /// Add or update a document and persist to disk.
+    ///  This function is expensive but it works for smaller datasets. Implement smaller increment saving for larger production.
     /// </summary>
     public async Task SaveDocumentAsync(DocumentModel doc)
     {
         _documentStorage[doc.Id] = doc;
-
-        // Write to disk
-        Directory.CreateDirectory(Path.GetDirectoryName(_docPath)!);
-        var allDocs = _documentStorage.Values.ToList();
-        var json = JsonSerializer.Serialize(allDocs, new JsonSerializerOptions { WriteIndented = true });
-        await File.WriteAllTextAsync(_docPath, json);
+        await _documentStore.SaveAllDocumentsAsync(_documentStorage.Values);
     }
 
     /// <summary>

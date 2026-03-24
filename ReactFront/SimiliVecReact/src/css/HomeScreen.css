@@ -1,0 +1,32 @@
+.continue-button{
+  padding: 12px 36px;
+  font-size: 1.1rem;
+  background-color: #b7ae02;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.continue-button:hover{
+  opacity: 0.7;
+}
+
+.home-socials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.home-socials a {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.home-socials img {
+  width: 28px;
+  height: 28px;
+  display: block;
+}

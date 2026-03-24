@@ -14,6 +14,37 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddVectorDataBaseServices(this IServiceCollection services)
     {
+        return services.AddVectorDataBaseProductionServices();
+    }
+
+    public static IServiceCollection AddVectorDataBaseDemoServices(this IServiceCollection services)
+    {
+        AddSharedServices(services);
+
+        services.AddSingleton(new DocumentStoreOptions { PreferSampleData = true });
+        services.AddSingleton<IDocumentStore, DataLoader>();
+        services.AddSingleton<IDocumentRepository, DocumentRepository>();
+
+        services.AddSingleton<IVectorService, VectorService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddVectorDataBaseProductionServices(this IServiceCollection services)
+    {
+        AddSharedServices(services);
+
+        services.AddSingleton(new DocumentStoreOptions { PreferSampleData = false });
+        services.AddSingleton<IDocumentStore, DataLoader>();
+        services.AddSingleton<IDocumentRepository, DocumentRepository>();
+
+        services.AddSingleton<IVectorService, VectorService>();
+
+        return services;
+    }
+
+    private static void AddSharedServices(IServiceCollection services)
+    {
         // Core/index - register configured DataIndex instance
         services.AddSingleton<IDataIndex>(sp => new DataIndex
         {
@@ -25,22 +56,12 @@ public static class ServiceCollectionExtensions
         // Embedding and tokenizer
         services.AddSingleton<IEmbeddingModel, EmbeddingModel>();
 
-        // Data loading
-        services.AddSingleton<IDataLoader, DataLoader>();
-
         // PCA and UMAP conversion
         services.AddSingleton<PCAConversion>();
         services.AddSingleton<UmapConversion>();
 
         // service layer components
-        services.AddSingleton<DocumentRepository>();
         services.AddSingleton<NodeDocumentMapper>();
         services.AddSingleton<CoordinateNormalizer>();
-
-        // VectorService holds state and coordinates index/embeddings
-        services.AddSingleton<IVectorService, VectorService>();
-
-
-        return services;
     }
 }

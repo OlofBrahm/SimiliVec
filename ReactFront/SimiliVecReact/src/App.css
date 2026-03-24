@@ -23,6 +23,41 @@
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
+.logo{
+  position: absolute;
+  right: 10px;
+  z-index: 20;
+}
+.logo img{
+  width: 70px;
+  height: 70px;
+}
+
+.socials {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 20;
+}
+
+.logo-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-footer a {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.logo-footer img {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);

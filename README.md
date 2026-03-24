@@ -54,6 +54,25 @@
    dotnet run
    ```
 
+### Mode Toggle (Demo vs Production)
+
+To switch data mode, edit one value in [SimiliVec.Api/appsettings.json](SimiliVec.Api/appsettings.json):
+
+```json
+"VectorDb": {
+   "UseDemoMode": true
+}
+```
+
+- `true` = **Demo mode** (loads bundled sample data, read-only, no persistence)
+- `false` = **Production mode** (loads from AppData and persists changes)
+
+Optional override via environment variable:
+
+```bash
+VectorDb__UseDemoMode=true
+```
+
 4. **Run the frontend(react):**
    ```bash
    cd ReactFront/SimiliVecReact

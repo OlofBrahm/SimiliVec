@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using VectorDataBase.Interfaces;
 using VectorDataBase.Models;
 
@@ -11,21 +11,23 @@ namespace VectorDataBase.Repositories;
 /// <summary>
 /// Handles loading and saving document data from persistent storage
 /// </summary>
-public class DataLoader : IDataLoader
+public class DataLoader : IDocumentStore
 {
     private readonly string _dataDirectory;
     private readonly string _dataFileName;
     private readonly string _fullFilePath;
     private readonly string _sampleDataPath;
+    private readonly bool _preferSampleData;
 
     private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
         WriteIndented = true
     };
 
-    public DataLoader()
+    public DataLoader(DocumentStoreOptions options)
     {
         _dataFileName = "documents.json";
+        _preferSampleData = options.PreferSampleData;
         
         // Try to find bundled sample data first (for production/demo)
         var appDirectory = AppContext.BaseDirectory;
@@ -34,19 +36,20 @@ public class DataLoader : IDataLoader
         // AppData folder for user-saved documents
         _dataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         _dataDirectory = Path.Combine(_dataDirectory, "SimiliVec");
-        if (!Directory.Exists(_dataDirectory))
-        {
-            Directory.CreateDirectory(_dataDirectory);
-        }
         _fullFilePath = Path.Combine(_dataDirectory, _dataFileName);
-        
-        // Initialize user data file if it doesn't exist
-        if (!File.Exists(_fullFilePath))
+
+        if (!_preferSampleData)
         {
-            File.Create(_fullFilePath).Close();
-            string defaultJstring = "[]";
-            File.WriteAllText(_fullFilePath, defaultJstring);
-        }
+            if (!Directory.Exists(_dataDirectory))
+            {
+                Directory.CreateDirectory(_dataDirectory);
+            }
+
+            // Initialize user data file if it doesn't exist
+            if (!File.Exists(_fullFilePath))
+            {
+                File.WriteAllText(_fullFilePath, "[]");
+            }        }
     }
 
     /// <summary>
@@ -62,63 +65,100 @@ public class DataLoader : IDataLoader
     }
 
     /// <summary>
-    /// Loads data from a text file
-    /// </summary>
-    /// <returns></returns>
-    public IEnumerable<DocumentModel> LoadDataFromFile()
-    {
-        EnsureDirectoryExists(_fullFilePath);
-        IEnumerable<DocumentModel> data = new List<DocumentModel>();
-        
-        // Try loading from bundled sample data first
-        if (File.Exists(_sampleDataPath))
-        {
-            var jsonData = File.ReadAllText(_sampleDataPath);
-            data = JsonSerializer.Deserialize<IEnumerable<DocumentModel>>(jsonData, _jsonOptions) ?? new List<DocumentModel>();
-            Console.WriteLine($"LoadDataFromFile: Loaded {data.Count()} documents from bundled sample data");
-            return data;
-        }
-        
-        // Fall back to user AppData folder
-        if (File.Exists(_fullFilePath))
-        {
-            var jsonData = File.ReadAllText(_fullFilePath);
-            data = JsonSerializer.Deserialize<IEnumerable<DocumentModel>>(jsonData, _jsonOptions) ?? new List<DocumentModel>();
-            Console.WriteLine($"LoadDataFromFile: Loaded {data.Count()} documents from {_fullFilePath}");
-        }
-        else
-        {
-            Console.WriteLine($"LoadDataFromFile: No data found, using empty list");
-        }
-        return data;
-    }
-
-    /// <summary>
-    /// Saves data to a text file
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public void SaveDataToFile<T>(T data)
-    {
-        EnsureDirectoryExists(_dataDirectory);
-        var jsonData = JsonSerializer.Serialize(data, _jsonOptions);
-        try
-        {
-            File.WriteAllText(_fullFilePath, jsonData);
-        }
-        catch
-        {
-            Console.WriteLine("Failed to write data to file.");
-        }
-    }
-
-    /// <summary>
-    /// Loads all documents
+    /// Loads documents from persistent storage.
     /// </summary>
     public IEnumerable<DocumentModel> LoadAllDocuments()
     {
-        var documents = LoadDataFromFile();
-        var docList = documents.ToList();
-        Console.WriteLine($"LoadAllDocuments: Total {docList.Count} documents loaded");
-        return docList;
+        if (_preferSampleData)
+        {
+            var sampleData = TryLoadDocumentsFromPath(_sampleDataPath);
+            if (sampleData != null)
+            {
+                Console.WriteLine($"LoadAllDocuments: Demo mode loaded {sampleData.Count} documents from {_sampleDataPath}");
+                return sampleData;
+            }
+
+            Console.WriteLine("LoadAllDocuments: Demo mode sample data missing, using empty list");
+            return new List<DocumentModel>();
+        }
+
+        EnsureDirectoryExists(_fullFilePath);
+        var primaryPath = _fullFilePath;
+        var fallbackPath = _sampleDataPath;
+
+        var primaryData = TryLoadDocumentsFromPath(primaryPath);
+        if (primaryData != null)
+        {
+            Console.WriteLine($"LoadAllDocuments: Loaded {primaryData.Count} documents from {primaryPath}");
+            return primaryData;
+        }
+
+        var fallbackData = TryLoadDocumentsFromPath(fallbackPath);
+        if (fallbackData != null)
+        {
+            Console.WriteLine($"LoadAllDocuments: Loaded {fallbackData.Count} documents from {fallbackPath}");
+            return fallbackData;
+        }
+
+        Console.WriteLine("LoadAllDocuments: No data found, using empty list");
+        return new List<DocumentModel>();
+    }
+
+    private List<DocumentModel>? TryLoadDocumentsFromPath(string path)
+    {
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            var jsonData = File.ReadAllText(path);
+            return JsonSerializer.Deserialize<List<DocumentModel>>(jsonData, _jsonOptions) ?? new List<DocumentModel>();
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"TryLoadDocumentsFromPath: I/O error reading {path}: {ex.Message}");
+            return null;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"TryLoadDocumentsFromPath: Access denied for {path}: {ex.Message}");
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            Console.WriteLine($"TryLoadDocumentsFromPath: Invalid JSON in {path}: {ex.Message}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"TryLoadDocumentsFromPath: Unexpected error reading {path}: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Saves all documents to persistent storage.
+    /// </summary>
+    public async Task SaveAllDocumentsAsync(IEnumerable<DocumentModel> documents)
+    {
+        if (_preferSampleData)
+        {
+            Console.WriteLine("SaveAllDocumentsAsync: Demo mode is read-only; skipping persistence.");
+            return;
+        }
+
+        EnsureDirectoryExists(_fullFilePath);
+        var jsonData = JsonSerializer.Serialize(documents, _jsonOptions);
+        try
+        {
+            await File.WriteAllTextAsync(_fullFilePath, jsonData);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SaveAllDocumentsAsync: Failed to write data to {_fullFilePath}. Exception: {ex}");
+            throw;
+        }
     }
 }

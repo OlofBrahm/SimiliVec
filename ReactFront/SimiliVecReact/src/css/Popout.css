@@ -1,0 +1,79 @@
+/* Shared popout styling */
+.menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-container button {
+  padding: 8px 16px;
+  background: rgba(50, 50, 50, 0.9);
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.menu-container button:hover {
+  background: rgba(60, 60, 60, 0.95);
+  border-color: #777;
+}
+
+.popout {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  background: rgba(25, 25, 25, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid #3c3c3c;
+  border-radius: 10px;
+  padding: 10px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  max-width: calc(100vw - 40px);
+  box-sizing: border-box;
+}
+
+.popout input {
+  padding: 8px 12px;
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.popout input:focus {
+  outline: none;
+  border-color: #b7ae02;
+}
+
+.popout button {
+  padding: 8px 16px;
+  background: #b7ae02;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.popout button:hover {
+  background-color: #b7ae02;
+  opacity: 0.7;
+}
+
+
+/* Component-specific variants */
+.popout-menu {
+  left: 0;
+  min-width: 250px;
+}
+
+.popout-search {
+  left: 0;
+  min-width: 200px;
+}

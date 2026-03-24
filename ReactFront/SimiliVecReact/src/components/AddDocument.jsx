@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { BasicDepthPacking } from 'three';
+import '../css/Popout.css'
 
 export const PopoutMenu = ({ onSave }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +18,7 @@ export const PopoutMenu = ({ onSave }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, []);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if(!id.trim() || !content.trim()){
             alert("Please fill out both fields");
             return;
@@ -29,32 +29,40 @@ export const PopoutMenu = ({ onSave }) => {
             content: content
         };
 
-        onSave(newDocument);
+        if (typeof onSave !== "function") {
+            alert("Save handler is missing.");
+            return;
+        }
 
-        //Reset state
-        setId("");
-        setContent("");
-        setIsOpen(false);
+        try {
+            await onSave(newDocument);
+
+            //Reset state only after successful save
+            setId("");
+            setContent("");
+            setIsOpen(false);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Failed to save document.";
+            alert(message);
+        }
     }
 
     return (
-        <div ref={menuRef} className="menu-container" style={{ position: 'relative', display: 'inline-block' }}>
+        <div ref={menuRef} className="menu-container">
             <button onClick={() => setIsOpen(!isOpen)}>Add Document</button>
             {isOpen && (
-                <nav className="popout" style={navStyle}>
+                <nav className="popout popout-menu">
                     <input
                         type="text"
                         placeholder="ID"
                         value={id}
                         onChange={(e) => setId(e.target.value)}
-                        style={{ padding: '5px' }}
                     />
                     <input
                         type="text"
                         placeholder="Content"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        style={{ padding: '5px' }}
                     />
                     <button onClick={handleSubmit}>Save Document</button>
                 </nav>
@@ -63,16 +71,4 @@ export const PopoutMenu = ({ onSave }) => {
             }
         </div>
     )
-}
-const navStyle = {
-    position: 'absolute',
-    background: '#222',
-    padding: '5px',
-    borderRadius: '8px',
-    bottom: 50,
-    color: 'white',
-    display: 'flex',
-    flexDirection: 'row',
-    gap: '5px',
-    zIndex: 100
 }

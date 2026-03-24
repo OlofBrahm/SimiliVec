@@ -1,0 +1,29 @@
+.controls {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.control-select {
+  padding: 8px 12px;
+  background: rgba(40, 40, 40, 0.8);
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.control-select:hover {
+  background: rgba(50, 50, 50, 0.9);
+  border-color: #777;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #b7ae02;
+}
