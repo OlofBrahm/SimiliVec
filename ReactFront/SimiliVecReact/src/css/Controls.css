@@ -24,6 +24,6 @@
 }
 
 .control-select:focus {
-  outline: none;
-  border-color: #b7ae02;
+  outline: 2px solid #b7ae02;
+  outline-offset: 2px;
 }

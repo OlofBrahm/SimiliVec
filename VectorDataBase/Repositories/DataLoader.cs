@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using VectorDataBase.Interfaces;
 using VectorDataBase.Models;
@@ -26,6 +27,11 @@ public class DataLoader : IDocumentStore
 
     public DataLoader(DocumentStoreOptions options)
     {
+        if (options is null)
+        {
+            throw new ArgumentNullException(nameof(options));
+        }
+
         _dataFileName = "documents.json";
         _preferSampleData = options.PreferSampleData;
         
@@ -40,16 +46,25 @@ public class DataLoader : IDocumentStore
 
         if (!_preferSampleData)
         {
-            if (!Directory.Exists(_dataDirectory))
+            try
             {
-                Directory.CreateDirectory(_dataDirectory);
-            }
+                if (!Directory.Exists(_dataDirectory))
+                {
+                    Directory.CreateDirectory(_dataDirectory);
+                }
 
-            // Initialize user data file if it doesn't exist
-            if (!File.Exists(_fullFilePath))
+                // Initialize user data file if it doesn't exist
+                if (!File.Exists(_fullFilePath))
+                {
+                    File.WriteAllText(_fullFilePath, "[]");
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DirectoryNotFoundException)
             {
-                File.WriteAllText(_fullFilePath, "[]");
-            }        }
+                Console.WriteLine($"DataLoader constructor: Failed to initialize data storage at {_fullFilePath}. Exception: {ex}");
+                throw new InvalidOperationException("Failed to initialize document storage.", ex);
+            }
+        }
     }
 
     /// <summary>
@@ -65,20 +80,25 @@ public class DataLoader : IDocumentStore
     }
 
     /// <summary>
-    /// Loads documents from persistent storage.
+    /// Loads documents from persistent storage asynchronously.
     /// </summary>
-    public IEnumerable<DocumentModel> LoadAllDocuments()
+    public async Task<IEnumerable<DocumentModel>> LoadAllDocumentsAsync(CancellationToken cancellationToken = default)
+    {
+        return await Task.Run(() => LoadAllDocumentsCore(), cancellationToken);
+    }
+
+    private IEnumerable<DocumentModel> LoadAllDocumentsCore()
     {
         if (_preferSampleData)
         {
             var sampleData = TryLoadDocumentsFromPath(_sampleDataPath);
             if (sampleData != null)
             {
-                Console.WriteLine($"LoadAllDocuments: Demo mode loaded {sampleData.Count} documents from {_sampleDataPath}");
+                Console.WriteLine($"LoadAllDocumentsAsync: Demo mode loaded {sampleData.Count} documents from {_sampleDataPath}");
                 return sampleData;
             }
 
-            Console.WriteLine("LoadAllDocuments: Demo mode sample data missing, using empty list");
+            Console.WriteLine("LoadAllDocumentsAsync: Demo mode sample data missing, using empty list");
             return new List<DocumentModel>();
         }
 
@@ -89,18 +109,18 @@ public class DataLoader : IDocumentStore
         var primaryData = TryLoadDocumentsFromPath(primaryPath);
         if (primaryData != null)
         {
-            Console.WriteLine($"LoadAllDocuments: Loaded {primaryData.Count} documents from {primaryPath}");
+            Console.WriteLine($"LoadAllDocumentsAsync: Loaded {primaryData.Count} documents from {primaryPath}");
             return primaryData;
         }
 
         var fallbackData = TryLoadDocumentsFromPath(fallbackPath);
         if (fallbackData != null)
         {
-            Console.WriteLine($"LoadAllDocuments: Loaded {fallbackData.Count} documents from {fallbackPath}");
+            Console.WriteLine($"LoadAllDocumentsAsync: Loaded {fallbackData.Count} documents from {fallbackPath}");
             return fallbackData;
         }
 
-        Console.WriteLine("LoadAllDocuments: No data found, using empty list");
+        Console.WriteLine("LoadAllDocumentsAsync: No data found, using empty list");
         return new List<DocumentModel>();
     }
 
@@ -139,10 +159,15 @@ public class DataLoader : IDocumentStore
     }
 
     /// <summary>
-    /// Saves all documents to persistent storage.
+    /// Saves all documents to persistent storage asynchronously.
     /// </summary>
-    public async Task SaveAllDocumentsAsync(IEnumerable<DocumentModel> documents)
+    public async Task SaveAllDocumentsAsync(IEnumerable<DocumentModel> documents, CancellationToken cancellationToken = default)
     {
+        if (documents is null)
+        {
+            throw new ArgumentNullException(nameof(documents), "Documents collection cannot be null.");
+        }
+
         if (_preferSampleData)
         {
             Console.WriteLine("SaveAllDocumentsAsync: Demo mode is read-only; skipping persistence.");
@@ -150,15 +175,16 @@ public class DataLoader : IDocumentStore
         }
 
         EnsureDirectoryExists(_fullFilePath);
-        var jsonData = JsonSerializer.Serialize(documents, _jsonOptions);
         try
         {
-            await File.WriteAllTextAsync(_fullFilePath, jsonData);
+            var jsonData = JsonSerializer.Serialize(documents, _jsonOptions);
+            await File.WriteAllTextAsync(_fullFilePath, jsonData, cancellationToken);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"SaveAllDocumentsAsync: Failed to write data to {_fullFilePath}. Exception: {ex}");
+            Console.WriteLine($"SaveAllDocumentsAsync: Failed to save data to {_fullFilePath}. Exception: {ex}");
             throw;
         }
     }
+
 }

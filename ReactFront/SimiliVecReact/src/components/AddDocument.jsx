@@ -3,6 +3,7 @@ import '../css/Popout.css'
 
 export const PopoutMenu = ({ onSave }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [id, setId] = useState("");
     const [content, setContent] = useState("");
     const menuRef = useRef(null);
@@ -19,22 +20,26 @@ export const PopoutMenu = ({ onSave }) => {
     }, []);
 
     const handleSubmit = async () => {
+        if (isLoading) {
+            return;
+        }
+
         if(!id.trim() || !content.trim()){
             alert("Please fill out both fields");
             return;
         }
 
         const newDocument = {
-            id: id,
-            content: content
+            id: id.trim(),
+            content: content.trim()
         };
-
         if (typeof onSave !== "function") {
             alert("Save handler is missing.");
             return;
         }
 
         try {
+            setIsLoading(true);
             await onSave(newDocument);
 
             //Reset state only after successful save
@@ -44,31 +49,42 @@ export const PopoutMenu = ({ onSave }) => {
         } catch (error) {
             const message = error instanceof Error ? error.message : "Failed to save document.";
             alert(message);
+        } finally {
+            setIsLoading(false);
         }
     }
 
     return (
         <div ref={menuRef} className="menu-container">
-            <button onClick={() => setIsOpen(!isOpen)}>Add Document</button>
+            <button 
+                onClick={() => setIsOpen(!isOpen)}
+                aria-expanded={isOpen}
+                aria-controls="add-document-popout"
+            >
+                Add Document
+            </button>
             {isOpen && (
-                <nav className="popout popout-menu">
+                <form id="add-document-popout" className="popout popout-menu" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+                    <label htmlFor="doc-id" className="visually-hidden">Document ID</label>
                     <input
+                        id="doc-id"
                         type="text"
                         placeholder="ID"
                         value={id}
                         onChange={(e) => setId(e.target.value)}
                     />
+                    <label htmlFor="doc-content" className="visually-hidden">Document Content</label>
                     <input
+                        id="doc-content"
                         type="text"
                         placeholder="Content"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                     />
-                    <button onClick={handleSubmit}>Save Document</button>
-                </nav>
+                    <button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Document'}</button>
+                </form>
             )
-
             }
         </div>
-    )
+    ) 
 }

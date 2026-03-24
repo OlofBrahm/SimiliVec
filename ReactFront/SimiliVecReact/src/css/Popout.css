@@ -19,11 +19,14 @@
   border-color: #777;
 }
 
+.menu-container button:focus {
+  outline: 2px solid #b7ae02;
+  outline-offset: 2px;
+}
 .popout {
   position: absolute;
   bottom: calc(100% + 8px);
-  background: rgba(25, 25, 25, 0.9);
-  backdrop-filter: blur(8px);
+  background: rgba(25, 25, 25, 0.95);
   border: 1px solid #3c3c3c;
   border-radius: 10px;
   padding: 10px;
@@ -37,6 +40,14 @@
   box-sizing: border-box;
 }
 
+@supports ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
+  .popout {
+    background: rgba(25, 25, 25, 0.9);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+}
+
 .popout input {
   padding: 8px 12px;
   background: rgba(20, 20, 20, 0.8);
@@ -47,7 +58,8 @@
 }
 
 .popout input:focus {
-  outline: none;
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
   border-color: #b7ae02;
 }
 
@@ -62,10 +74,13 @@
 }
 
 .popout button:hover {
-  background-color: #b7ae02;
   opacity: 0.7;
 }
 
+.popout button:focus {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
 
 /* Component-specific variants */
 .popout-menu {

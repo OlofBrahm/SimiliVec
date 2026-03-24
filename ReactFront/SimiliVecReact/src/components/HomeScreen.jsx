@@ -1,10 +1,13 @@
 import '../css/HomeScreen.css';
+import similivecLogo from '../assets/similivec.svg';
+import githubLogo from '../assets/github.svg';
+import linkedinLogo from '../assets/linkedin.svg';
 
-export function HomeScreen({ onContinue, githubUrl, linkedinUrl }) {
+export function HomeScreen({ onContinue, githubUrl = '', linkedinUrl = '' }) {
   return (
     <div style={homeScreenStyle}>
       <div style={contentStyle}>
-        <img src="src/assets/similivec.svg" alt="SimiliVec" style={logoStyle} />
+        <img src={similivecLogo} alt="SimiliVec" style={logoStyle} />
         <h1 style={titleStyle}>SimiliVec</h1>
         <p style={descriptionStyle}>
           Explore high-dimensional vector spaces with interactive 3D visualization
@@ -13,12 +16,16 @@ export function HomeScreen({ onContinue, githubUrl, linkedinUrl }) {
           Continue
         </button>
         <div className="home-socials">
-          <a href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-            <img src="src/assets/github.svg" alt="Github" />
-          </a>
-          <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-            <img src="src/assets/linkedin.svg" alt="LinkedIn" />
-          </a>
+          {githubUrl && (
+            <a href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+              <img src={githubLogo} alt="Github" />
+            </a>
+          )}
+          {linkedinUrl && (
+            <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <img src={linkedinLogo} alt="LinkedIn" />
+            </a>
+          )}
         </div>
       </div>
     </div>

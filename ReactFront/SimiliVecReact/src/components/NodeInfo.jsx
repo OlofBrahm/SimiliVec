@@ -6,7 +6,7 @@ export const NodeInfo = ({ node, onClose }) => {
 
   return (
     <div className="node-info">
-      <button onClick={onClose} className="node-info-close">×</button>
+      <button onClick={onClose} className="node-info-close" aria-label="Close node info">×</button>
       <h3>Node Details</h3>
       <p><strong>ID:</strong> {node.id}</p>
       <p><strong>Content:</strong> {node.content}</p>

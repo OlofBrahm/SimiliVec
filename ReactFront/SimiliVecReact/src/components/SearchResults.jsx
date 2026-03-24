@@ -9,20 +9,27 @@ export function SearchResults({ results, onSelect, onClose }) {
         <div className="search-results-container">
             <div className="search-results-header">
                 <span className="search-results-title">Search Results</span>
-                <button onClick={onClose} className="search-results-close">×</button>
-            </div>
+                <button onClick={onClose} className="search-results-close" aria-label="Close search results">×</button>            </div>
             <div className="search-results-list">
                 {results.map((hit) => (
                     <div
                         key={hit.nodeId}
                         className="search-results-item"
                         onClick={() => onSelect(hit)}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                onSelect(hit);
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
                     >
                         <div className="search-results-meta">
                             <span className="search-results-sim-badge">
                                 {percentFromSimilarity(hit.similarity)}% Match
                             </span>
-                            <span className="search-results-distance"> Dist: {hit.distance.toFixed(3)}</span>
+                            <span className="search-results-distance"> Dist: {hit.distance?.toFixed(3) ?? 'N/A'}</span>
                         </div>
                         <div className="search-results-content">{hit.document?.content}</div>
                     </div>

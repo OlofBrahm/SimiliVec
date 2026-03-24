@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using VectorDataBase.Interfaces;
 using VectorDataBase.Embedding;
@@ -23,7 +25,8 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(new DocumentStoreOptions { PreferSampleData = true });
         services.AddSingleton<IDocumentStore, DataLoader>();
-        services.AddSingleton<IDocumentRepository, DocumentRepository>();
+        // DocumentRepository is initialized via InitializeDocumentRepositoryAsync after app.Build()
+        services.AddSingleton<IDocumentRepository>(sp => GetInitializedRepository());
 
         services.AddSingleton<IVectorService, VectorService>();
 
@@ -36,7 +39,8 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(new DocumentStoreOptions { PreferSampleData = false });
         services.AddSingleton<IDocumentStore, DataLoader>();
-        services.AddSingleton<IDocumentRepository, DocumentRepository>();
+        // DocumentRepository is initialized via InitializeDocumentRepositoryAsync after app.Build()
+        services.AddSingleton<IDocumentRepository>(sp => GetInitializedRepository());
 
         services.AddSingleton<IVectorService, VectorService>();
 
@@ -63,5 +67,32 @@ public static class ServiceCollectionExtensions
         // service layer components
         services.AddSingleton<NodeDocumentMapper>();
         services.AddSingleton<CoordinateNormalizer>();
+    }
+
+    // Static field to store the initialized repository - workaround for post-Build() initialization
+    private static DocumentRepository? _initializedRepository = null;
+
+    /// <summary>
+    /// Asynchronously initializes the DocumentRepository and stores it for later retrieval.
+    /// Must be called after app.Build() and before using VectorService.
+    /// </summary>
+    public static async Task InitializeDocumentRepositoryAsync(this IServiceProvider serviceProvider)
+    {
+        var documentStore = serviceProvider.GetRequiredService<IDocumentStore>();
+        _initializedRepository = await DocumentRepository.CreateAsync(documentStore);
+    }
+
+    /// <summary>
+    /// Gets the initialized DocumentRepository. Throws if not yet initialized.
+    /// </summary>
+    public static DocumentRepository GetInitializedRepository()
+    {
+        if (_initializedRepository is null)
+        {
+            throw new InvalidOperationException(
+                "DocumentRepository has not been initialized. " +
+                "Ensure InitializeDocumentRepositoryAsync is called after app.Build().");
+        }
+        return _initializedRepository;
     }
 }

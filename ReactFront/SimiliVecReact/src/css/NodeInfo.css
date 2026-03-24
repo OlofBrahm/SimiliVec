@@ -4,8 +4,10 @@
   top: 150px;
   right: 20px;
   background: rgba(25, 25, 25, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid #3c3c3c;
+  @supports not (backdrop-filter: blur(8px)) {
+    background: rgba(25, 25, 25, 0.98);
+  }
+  backdrop-filter: blur(8px);  border: 1px solid #3c3c3c;
   border-radius: 10px;
   color: white;
   z-index: 10;
@@ -42,6 +44,15 @@
   transition: color 0.2s;
 }
 
+.node-info-close:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  color: #fff;
+}
+
+.node-info-close:focus:not(:focus-visible) {
+  outline: none;
+}
 .node-info-close:hover {
   color: #fff;
 }

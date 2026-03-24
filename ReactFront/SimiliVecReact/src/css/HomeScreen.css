@@ -13,6 +13,18 @@
   opacity: 0.7;
 }
 
+.continue-button:focus,
+.continue-button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(183, 174, 2, 0.45);
+}
+
+.continue-button:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
 .home-socials {
   display: flex;
   align-items: center;
@@ -23,6 +35,19 @@
 .home-socials a {
   display: inline-flex;
   text-decoration: none;
+}
+
+.home-socials a:focus,
+.home-socials a:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px rgba(183, 174, 2, 0.45);
+}
+
+.home-socials a:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
 }
 
 .home-socials img {

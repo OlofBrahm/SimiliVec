@@ -11,6 +11,9 @@ import { SearchResults } from './components/SearchResults'
 import { HomeScreen } from './components/HomeScreen'
 import { Controls } from './components/Controls'
 import { NodeInfo } from './components/NodeInfo'
+import similivecLogo from './assets/similivec.svg'
+import githubIcon from './assets/github.svg'
+import linkedinIcon from './assets/linkedin.svg'
 import './App.css'
 
 
@@ -25,6 +28,7 @@ export default function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [algo, setAlgo] = useState('pca');
   const [queryPosition, setQueryPosition] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
 
   useEffect(() => {
@@ -51,7 +55,7 @@ export default function App() {
     (async () => {
       await loadNodes();
     })();
-  }, [algo]);
+  }, [algo, refreshKey]);
 
   const handleSearch = async (queryText) => {
     try {
@@ -80,7 +84,7 @@ export default function App() {
     try {
       await vectorApi.addDocument(newDocument);
       console.log("Added document:", newDocument.id);
-      setAlgo(algo); // Trigger useEffect to reload nodes
+      setRefreshKey((current) => current + 1);
     } catch (error) {
       console.error("Failed to add document:", error);
     }
@@ -119,7 +123,7 @@ export default function App() {
         tabIndex={0}
       >
         <img
-          src="src/assets/similivec.svg"
+          src={similivecLogo}
           alt="SimiliVec"
         />
       </header>
@@ -127,10 +131,10 @@ export default function App() {
       <footer className='socials'>
         <div className="logo-footer">
           <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-            <img src="src/assets/github.svg" alt="Github" />
+            <img src={githubIcon} alt="Github" />
           </a>
           <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-            <img src="src/assets/linkedin.svg" alt="LinkedIn" />
+            <img src={linkedinIcon} alt="LinkedIn" />
           </a>
         </div>
       </footer>
