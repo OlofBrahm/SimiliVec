@@ -10,28 +10,13 @@
   height: 100vh;
 }
 
-.logo {
+.header-svg {
   height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
   position: absolute;
-  top: 10px;
+  top: 0px;
   right: 10px;
   z-index: 20;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-.logo img{
-  width: 70px;
-  height: 70px;
+  transition: transform 0.2s ease;
 }
 
 .socials {
@@ -41,22 +26,32 @@
   z-index: 20;
 }
 
-.logo-footer {
+.logo-footer{
   display: flex;
-  align-items: center;
+  flex-direction: row;
+  gap: 15px;
+}
+
+.logo-footer .social-icon {
   gap: 10px;
+  width: 40px;
+  height: 40px;
+  border: 10px;
+  border-color: white;
+  fill: var(--color-border);
+  transition: fill 0.3s ease, transform 0.2s ease;
 }
 
-.logo-footer a {
-  display: inline-flex;
-  text-decoration: none;
+
+.logo-footer a:hover .social-icon {
+  fill: var(--color-text);
+  transform: scale(1.1);
 }
 
-.logo-footer img {
-  width: 28px;
-  height: 28px;
-  display: block;
+.logo:hover .header-svg {
+  transform: scale(1.1);
 }
+
 
 
 @keyframes logo-spin {
@@ -79,7 +74,7 @@
 }
 
 .read-the-docs {
-  color: #888;
+  color: var(--color-border);
 }
 
 .visually-hidden {

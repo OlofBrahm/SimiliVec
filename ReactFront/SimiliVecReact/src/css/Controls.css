@@ -9,21 +9,21 @@
 
 .control-select {
   padding: 8px 12px;
-  background: rgba(40, 40, 40, 0.8);
-  border: 1px solid #555;
+  background: rgba(var(--color-primary-rgb), 0.8);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  color: white;
+  color: var(--color-text);
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
 }
 
 .control-select:hover {
-  background: rgba(50, 50, 50, 0.9);
-  border-color: #777;
+  background: rgba(var(--color-primary-rgb), 0.9);
+  border-color: white;
 }
 
 .control-select:focus {
-  outline: 2px solid #b7ae02;
+  outline: 2px solid var(--color-secondary);
   outline-offset: 2px;
 }

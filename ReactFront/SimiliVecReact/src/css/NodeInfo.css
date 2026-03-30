@@ -3,13 +3,14 @@
   position: absolute;
   top: 150px;
   right: 20px;
-  background: rgba(25, 25, 25, 0.9);
+  background: rgba(var(--color-primary-rgb), 0.9);
   @supports not (backdrop-filter: blur(8px)) {
-    background: rgba(25, 25, 25, 0.98);
+    background: rgba(var(--color-primary-rgb), 0.98);
   }
-  backdrop-filter: blur(8px);  border: 1px solid #3c3c3c;
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  color: white;
+  color: var(--color-text);
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -21,7 +22,7 @@
 .node-info h3 {
   margin: 8px 0;
   font-size: 1.1rem;
-  color: #f0f0f0;
+  color: var(--color-text);
 }
 
 .node-info p {
@@ -38,25 +39,25 @@
   right: 15px;
   padding: 0;
   border: none;
-  color: #888;
+  color: var(--color-border);
   cursor: pointer;
   font-size: 1.2rem;
   transition: color 0.2s;
 }
 
 .node-info-close:focus {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--color-text);
   outline-offset: 2px;
-  color: #fff;
+  color: var(--color-text);
 }
 
 .node-info-close:focus:not(:focus-visible) {
   outline: none;
 }
 .node-info-close:hover {
-  color: #fff;
+  color: var(--color-text);
 }
 
 .node-info-close:active {
-  color: #ccc;
+  color: var(--color-border);
 }

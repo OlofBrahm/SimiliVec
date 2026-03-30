@@ -1,8 +1,8 @@
 .continue-button{
   padding: 12px 36px;
   font-size: 1.1rem;
-  background-color: #b7ae02;
-  color: white;
+  background-color: var(--color-secondary);
+  color: var(--color-text);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -15,9 +15,9 @@
 
 .continue-button:focus,
 .continue-button:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--color-text);
   outline-offset: 2px;
-  box-shadow: 0 0 0 3px rgba(183, 174, 2, 0.45);
+  box-shadow: 0 0 0 3px rgba(244, 232, 0, 0.45);
 }
 
 .continue-button:focus:not(:focus-visible) {
@@ -39,10 +39,10 @@
 
 .home-socials a:focus,
 .home-socials a:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--color-text);
   outline-offset: 3px;
   border-radius: 6px;
-  box-shadow: 0 0 0 3px rgba(183, 174, 2, 0.45);
+  box-shadow: 0 0 0 3px rgba(244, 232, 0, 0.45);
 }
 
 .home-socials a:focus:not(:focus-visible) {

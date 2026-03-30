@@ -1,0 +1,11 @@
+:root{
+    --color-primary: #272727;
+    --color-primary-rgb: 39, 39, 39;
+    --color-secondary: #f4e800;
+    --color-border: #484848;
+    --color-text: white;
+    --match-high: #4ade80;
+    --match-mid: #fbbf24;
+    --text-dim: #9ca3af;
+    /*#272727  #555*/
+}

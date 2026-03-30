@@ -548,5 +548,505 @@
     "Id": "110",
     "Title": "Imbalanced Data Handling",
     "Content": "Imbalanced datasets have skewed class distributions that challenge standard learning. SMOTE, class weighting, and specialized metrics address imbalance for better minority class performance."
+  },
+  {
+    "Id": "111",
+    "Title": "Astrophysics: Stellar Nucleosynthesis",
+    "Content": "Heavy elements are forged in stellar cores and supernovae through fusion and neutron-capture processes. Spectral lines reveal chemical abundances and the life cycle of stars."
+  },
+  {
+    "Id": "112",
+    "Title": "Astrophysics: Exoplanet Transit Photometry",
+    "Content": "Transit methods detect exoplanets by measuring tiny, periodic dips in starlight. Light-curve depth and timing estimate orbital period, radius, and atmospheric hints."
+  },
+  {
+    "Id": "113",
+    "Title": "Astrophysics: Gravitational Lensing",
+    "Content": "Massive objects bend spacetime and deflect background light, creating arcs and multiple images. Lensing maps dark matter distribution without relying on luminous tracers."
+  },
+  {
+    "Id": "114",
+    "Title": "Astrophysics: Radio Interferometry",
+    "Content": "Separated antennas act as a virtual telescope with high angular resolution. Fourier synthesis reconstructs radio images of jets, pulsars, and molecular clouds."
+  },
+  {
+    "Id": "115",
+    "Title": "Astrophysics: Cosmological Redshift",
+    "Content": "Expanding space stretches wavelengths, shifting distant galaxies toward red frequencies. Redshift-distance relations support modern cosmology and large-scale structure studies."
+  },
+  {
+    "Id": "116",
+    "Title": "Astrophysics: Pulsar Timing",
+    "Content": "Millisecond pulsars behave like cosmic clocks with precise pulse intervals. Timing residuals reveal binary companions, interstellar media effects, and low-frequency gravitational-wave signatures."
+  },
+  {
+    "Id": "117",
+    "Title": "Astrophysics: Black Hole Accretion",
+    "Content": "Matter spiraling into black holes forms hot accretion disks and relativistic jets. X-ray variability probes inner-disk physics near extreme gravity."
+  },
+  {
+    "Id": "118",
+    "Title": "Astrophysics: Dark Matter Halos",
+    "Content": "Galaxy rotation curves stay flat at large radii, implying unseen mass. Halo models explain clustering, lensing signatures, and structure growth."
+  },
+  {
+    "Id": "119",
+    "Title": "Astrophysics: Cosmic Microwave Background",
+    "Content": "The CMB is relic radiation from the early universe with tiny anisotropies. Power spectra constrain curvature, baryon density, and inflationary parameters."
+  },
+  {
+    "Id": "120",
+    "Title": "Astrophysics: Supernova Remnants",
+    "Content": "Shock fronts from stellar explosions heat plasma and accelerate cosmic rays. Remnant morphology records progenitor type, magnetic fields, and surrounding medium."
+  },
+  {
+    "Id": "121",
+    "Title": "Marine Biology: Coral Reef Symbiosis",
+    "Content": "Corals host symbiotic algae that supply energy through photosynthesis. Thermal stress disrupts this partnership, causing bleaching and ecosystem collapse risks."
+  },
+  {
+    "Id": "122",
+    "Title": "Marine Biology: Upwelling Systems",
+    "Content": "Wind-driven upwelling lifts nutrient-rich deep water to the surface. Phytoplankton blooms support productive fisheries and complex trophic webs."
+  },
+  {
+    "Id": "123",
+    "Title": "Marine Biology: Mangrove Nurseries",
+    "Content": "Mangrove roots shelter juvenile fish and invertebrates from predators. Nursery habitat quality strongly influences coastal biodiversity and catch sustainability."
+  },
+  {
+    "Id": "124",
+    "Title": "Marine Biology: Cetacean Migration",
+    "Content": "Whales follow seasonal routes linked to feeding and breeding grounds. Acoustic monitoring tracks population dynamics and ship-noise disturbance."
+  },
+  {
+    "Id": "125",
+    "Title": "Marine Biology: Ocean Acidification",
+    "Content": "Rising dissolved CO2 lowers seawater pH and carbonate availability. Calcifying organisms like corals and shellfish face growth and structural stress."
+  },
+  {
+    "Id": "126",
+    "Title": "Marine Biology: Deep-Sea Vents",
+    "Content": "Hydrothermal vent communities depend on chemosynthesis instead of sunlight. Extremophile microbes and specialized fauna reveal unusual metabolic adaptations."
+  },
+  {
+    "Id": "127",
+    "Title": "Marine Biology: Plankton Community Shifts",
+    "Content": "Temperature and nutrient changes alter plankton composition and bloom timing. These shifts propagate through food chains and biogeochemical cycles."
+  },
+  {
+    "Id": "128",
+    "Title": "Marine Biology: Seagrass Restoration",
+    "Content": "Seagrass meadows stabilize sediment, store carbon, and support fisheries. Restoration uses donor transplants, water-quality management, and long-term ecological monitoring."
+  },
+  {
+    "Id": "129",
+    "Title": "Marine Biology: Bycatch Mitigation",
+    "Content": "Modified gear and temporal closures reduce unintended capture of non-target species. Effective mitigation balances ecosystem protection with fisher livelihoods."
+  },
+  {
+    "Id": "130",
+    "Title": "Marine Biology: Coastal Dead Zones",
+    "Content": "Excess nutrient runoff fuels algal growth and oxygen depletion. Hypoxic zones threaten benthic organisms, fisheries, and coastal economies."
+  },
+  {
+    "Id": "131",
+    "Title": "Classical Music: Sonata Form",
+    "Content": "Sonata form organizes movement structure into exposition, development, and recapitulation. Thematic contrast and tonal planning create narrative musical tension."
+  },
+  {
+    "Id": "132",
+    "Title": "Classical Music: Counterpoint Techniques",
+    "Content": "Counterpoint combines independent melodic lines under voice-leading constraints. Species exercises train dissonance treatment, imitation, and interval control."
+  },
+  {
+    "Id": "133",
+    "Title": "Classical Music: Orchestration Color",
+    "Content": "Composers shape timbre by layering instrument families and registers. Doubling, articulation, and dynamics affect clarity, blend, and emotional tone."
+  },
+  {
+    "Id": "134",
+    "Title": "Classical Music: Conducting Gesture",
+    "Content": "Baton patterns communicate meter, entrances, and phrasing to ensembles. Rehearsal language aligns tempo flexibility, articulation, and balance."
+  },
+  {
+    "Id": "135",
+    "Title": "Classical Music: Baroque Ornamentation",
+    "Content": "Trills, mordents, and appoggiaturas add expressive nuance to melodic lines. Historically informed performance considers style, tempo, and rhetorical context."
+  },
+  {
+    "Id": "136",
+    "Title": "Classical Music: Choral Intonation",
+    "Content": "Ensemble intonation depends on vowel unification, listening, and harmonic context. Just-intonation tendencies can differ from equal-tempered keyboard references."
+  },
+  {
+    "Id": "137",
+    "Title": "Classical Music: Romantic Harmony",
+    "Content": "Romantic-era harmony expands chromaticism and delayed resolution for expressive intensity. Extended dominants and altered chords shape dramatic progression."
+  },
+  {
+    "Id": "138",
+    "Title": "Classical Music: Opera Staging",
+    "Content": "Opera integrates vocal technique, orchestral support, and theatrical blocking. Stage direction and acoustics strongly influence narrative intelligibility."
+  },
+  {
+    "Id": "139",
+    "Title": "Classical Music: Minimalism",
+    "Content": "Minimalist works use repetition, gradual process, and phase relationships. Subtle pattern shifts generate long-form momentum and perceptual focus."
+  },
+  {
+    "Id": "140",
+    "Title": "Classical Music: Chamber Rehearsal",
+    "Content": "Small ensembles refine micro-timing, articulation, and phrase architecture collaboratively. Distributed leadership improves musical cohesion and interpretive consensus."
+  },
+  {
+    "Id": "141",
+    "Title": "Urban Planning: Transit-Oriented Development",
+    "Content": "Transit-oriented development concentrates housing and services near high-capacity stations. Dense, mixed-use zoning reduces car dependency and trip emissions."
+  },
+  {
+    "Id": "142",
+    "Title": "Urban Planning: Complete Streets",
+    "Content": "Complete streets allocate safe space for walking, cycling, transit, and cars. Design standards include protected lanes, crossings, and traffic calming."
+  },
+  {
+    "Id": "143",
+    "Title": "Urban Planning: Inclusionary Zoning",
+    "Content": "Inclusionary policies tie new development to affordable housing requirements. Program outcomes depend on market strength, incentives, and enforcement details."
+  },
+  {
+    "Id": "144",
+    "Title": "Urban Planning: Stormwater Management",
+    "Content": "Permeable surfaces and bioswales reduce flood risk by slowing runoff. Green infrastructure also improves urban heat resilience and habitat quality."
+  },
+  {
+    "Id": "145",
+    "Title": "Urban Planning: Public Realm Design",
+    "Content": "Plazas, parks, and streetscapes influence social interaction and safety perception. Human-scale furniture, shade, and sightlines improve everyday usability."
+  },
+  {
+    "Id": "146",
+    "Title": "Urban Planning: Parking Reform",
+    "Content": "Removing minimum parking requirements can lower housing costs and land waste. Demand-based pricing allocates curb space more efficiently."
+  },
+  {
+    "Id": "147",
+    "Title": "Urban Planning: 15-Minute City",
+    "Content": "The 15-minute city emphasizes local access to work, schools, healthcare, and recreation. Proximity planning reduces commute burden and improves livability."
+  },
+  {
+    "Id": "148",
+    "Title": "Urban Planning: Informal Settlements",
+    "Content": "Upgrading informal settlements prioritizes tenure security, water access, and safe mobility. Participatory design avoids displacement and supports community continuity."
+  },
+  {
+    "Id": "149",
+    "Title": "Urban Planning: Land Value Capture",
+    "Content": "Public infrastructure can raise nearby land values. Capture mechanisms recycle part of that uplift into transit and civic improvements."
+  },
+  {
+    "Id": "150",
+    "Title": "Urban Planning: Heat Island Mitigation",
+    "Content": "Tree canopies, cool roofs, and reflective materials lower urban surface temperatures. Targeted cooling interventions reduce health risks during heatwaves."
+  },
+  {
+    "Id": "151",
+    "Title": "Behavioral Economics: Loss Aversion",
+    "Content": "People often weigh losses more heavily than equivalent gains. This asymmetry shapes pricing strategy, investment behavior, and policy framing."
+  },
+  {
+    "Id": "152",
+    "Title": "Behavioral Economics: Default Effects",
+    "Content": "Default options strongly influence choice when effort or uncertainty is high. Enrollment rates in savings plans rise when opt-out replaces opt-in."
+  },
+  {
+    "Id": "153",
+    "Title": "Behavioral Economics: Anchoring Bias",
+    "Content": "Initial numeric references can distort subsequent estimates and negotiations. Even arbitrary anchors shift willingness-to-pay and valuation judgments."
+  },
+  {
+    "Id": "154",
+    "Title": "Behavioral Economics: Present Bias",
+    "Content": "Present bias favors immediate rewards over larger delayed outcomes. Commitment devices help align long-term goals with short-term behavior."
+  },
+  {
+    "Id": "155",
+    "Title": "Behavioral Economics: Mental Accounting",
+    "Content": "People categorize money into separate psychological budgets rather than treating it fungibly. This can produce inconsistent spending and saving patterns."
+  },
+  {
+    "Id": "156",
+    "Title": "Behavioral Economics: Social Norm Nudges",
+    "Content": "Norm-based messages compare behavior with peers to influence decisions. Energy and tax compliance programs often leverage this effect."
+  },
+  {
+    "Id": "157",
+    "Title": "Behavioral Economics: Framing Effects",
+    "Content": "Equivalent outcomes can trigger different choices depending on wording. Gain versus loss framing changes risk attitudes in health and finance contexts."
+  },
+  {
+    "Id": "158",
+    "Title": "Behavioral Economics: Choice Overload",
+    "Content": "Too many options can reduce satisfaction and decision quality. Curated assortments and guided filters lower cognitive burden."
+  },
+  {
+    "Id": "159",
+    "Title": "Behavioral Economics: Reciprocity",
+    "Content": "People respond to perceived fairness and generosity with reciprocal behavior. Reciprocity influences workplace effort, trust, and platform cooperation."
+  },
+  {
+    "Id": "160",
+    "Title": "Behavioral Economics: Hyperbolic Discounting",
+    "Content": "Discount rates often decline with longer time horizons, unlike exponential models. Hyperbolic preferences explain procrastination and inconsistent plans."
+  },
+  {
+    "Id": "161",
+    "Title": "Archaeology: Stratigraphic Context",
+    "Content": "Layer ordering at excavation sites provides temporal sequence for artifacts. Disturbed strata can mislead interpretation without careful context recording."
+  },
+  {
+    "Id": "162",
+    "Title": "Archaeology: Radiocarbon Dating",
+    "Content": "Carbon-14 decay estimates organic sample age when calibration curves are applied. Reservoir effects and contamination can bias date ranges."
+  },
+  {
+    "Id": "163",
+    "Title": "Archaeology: Ceramic Typology",
+    "Content": "Pottery shape, fabric, and decoration classify cultural phases and trade links. Typological seriation helps infer chronology across sites."
+  },
+  {
+    "Id": "164",
+    "Title": "Archaeology: Bioarchaeology",
+    "Content": "Human remains reveal diet, health, and mobility through isotopes and pathology. Ethical frameworks govern excavation, analysis, and repatriation."
+  },
+  {
+    "Id": "165",
+    "Title": "Archaeology: Ground-Penetrating Radar",
+    "Content": "GPR detects subsurface anomalies before excavation using reflected electromagnetic pulses. Non-invasive surveys reduce site disturbance and target trench placement."
+  },
+  {
+    "Id": "166",
+    "Title": "Archaeology: Lithic Analysis",
+    "Content": "Stone tool scars and platform angles reconstruct manufacturing techniques. Use-wear microscopy identifies tasks like scraping, cutting, or drilling."
+  },
+  {
+    "Id": "167",
+    "Title": "Archaeology: Site Formation Processes",
+    "Content": "Natural and human actions alter deposition after occupation. Understanding post-depositional change is crucial for reliable behavioral inference."
+  },
+  {
+    "Id": "168",
+    "Title": "Archaeology: Rock Art Documentation",
+    "Content": "High-resolution imaging records pigment, engraving depth, and weathering patterns. Conservation protocols minimize light, moisture, and visitor damage."
+  },
+  {
+    "Id": "169",
+    "Title": "Archaeology: Ancient Trade Networks",
+    "Content": "Isotopic and compositional sourcing traces long-distance exchange of obsidian, metals, and ceramics. Network analysis models regional connectivity."
+  },
+  {
+    "Id": "170",
+    "Title": "Archaeology: Heritage Management",
+    "Content": "Heritage management balances research goals, tourism pressure, and local stewardship. Legal protection and community engagement improve site longevity."
+  },
+  {
+    "Id": "171",
+    "Title": "Healthcare: Emergency Triage",
+    "Content": "Triage systems prioritize care by acuity to reduce preventable mortality. Queue design and staffing levels strongly influence wait times."
+  },
+  {
+    "Id": "172",
+    "Title": "Healthcare: Antibiotic Stewardship",
+    "Content": "Stewardship programs optimize antibiotic use to limit resistance evolution. Audits, prescribing feedback, and diagnostics improve treatment precision."
+  },
+  {
+    "Id": "173",
+    "Title": "Healthcare: Telemedicine Workflows",
+    "Content": "Telemedicine expands access for remote and mobility-limited populations. Effective workflows require secure platforms, triage protocols, and follow-up pathways."
+  },
+  {
+    "Id": "174",
+    "Title": "Healthcare: Hospital Bed Management",
+    "Content": "Bed utilization depends on discharge planning, surgery schedules, and length-of-stay variability. Predictive dashboards support smoother patient flow."
+  },
+  {
+    "Id": "175",
+    "Title": "Healthcare: Vaccination Campaigns",
+    "Content": "Campaign success combines cold-chain reliability, trust-building communication, and outreach logistics. Coverage heterogeneity can sustain outbreak risk."
+  },
+  {
+    "Id": "176",
+    "Title": "Healthcare: Diagnostic Sensitivity and Specificity",
+    "Content": "Sensitivity measures true-positive detection while specificity measures true negatives. Predictive value depends strongly on population prevalence."
+  },
+  {
+    "Id": "177",
+    "Title": "Healthcare: Clinical Trial Randomization",
+    "Content": "Randomization reduces confounding and supports causal treatment comparisons. Blinding and pre-registered endpoints improve evidential reliability."
+  },
+  {
+    "Id": "178",
+    "Title": "Healthcare: Postoperative Recovery",
+    "Content": "Enhanced recovery pathways coordinate pain control, early mobility, and nutrition. Standardized protocols lower complications and length of stay."
+  },
+  {
+    "Id": "179",
+    "Title": "Healthcare: Public Health Surveillance",
+    "Content": "Syndromic and laboratory surveillance detect disease trends in near real time. Data integration supports earlier interventions and resource allocation."
+  },
+  {
+    "Id": "180",
+    "Title": "Healthcare: Chronic Disease Management",
+    "Content": "Long-term care for diabetes and heart disease relies on adherence support and monitoring. Team-based care improves outcomes and reduces readmissions."
+  },
+  {
+    "Id": "181",
+    "Title": "Renewable Energy: Grid Flexibility",
+    "Content": "Variable wind and solar output require flexible generation and storage. Dispatch optimization balances reliability, curtailment, and operating cost."
+  },
+  {
+    "Id": "182",
+    "Title": "Renewable Energy: Offshore Wind Farms",
+    "Content": "Offshore turbines capture stronger, steadier winds than many land sites. Foundation design, transmission, and maintenance logistics dominate lifecycle costs."
+  },
+  {
+    "Id": "183",
+    "Title": "Renewable Energy: Battery Degradation",
+    "Content": "Lithium-ion capacity fades with cycling depth, temperature, and charging rate. Battery management systems optimize performance and safety trade-offs."
+  },
+  {
+    "Id": "184",
+    "Title": "Renewable Energy: Demand Response",
+    "Content": "Demand response shifts consumption away from peak periods using pricing and automation. Flexible loads reduce stress on transmission and generation assets."
+  },
+  {
+    "Id": "185",
+    "Title": "Renewable Energy: Solar Forecasting",
+    "Content": "Short-term solar forecasts combine satellite imagery, weather models, and ground sensors. Better forecast accuracy improves unit commitment decisions."
+  },
+  {
+    "Id": "186",
+    "Title": "Renewable Energy: Green Hydrogen",
+    "Content": "Electrolyzers convert renewable electricity into hydrogen for industry and storage. Efficiency and infrastructure constraints shape deployment pathways."
+  },
+  {
+    "Id": "187",
+    "Title": "Renewable Energy: Microgrids",
+    "Content": "Microgrids integrate local generation, storage, and controls for resilience. Islanding capability supports critical loads during wider grid outages."
+  },
+  {
+    "Id": "188",
+    "Title": "Renewable Energy: Power Purchase Agreements",
+    "Content": "PPAs lock in long-term electricity prices between buyers and generators. Contract structure affects financing risk and project bankability."
+  },
+  {
+    "Id": "189",
+    "Title": "Renewable Energy: Life-Cycle Assessment",
+    "Content": "LCA evaluates emissions and material impacts from extraction to decommissioning. Comparisons guide technology selection beyond operational carbon intensity."
+  },
+  {
+    "Id": "190",
+    "Title": "Renewable Energy: Transmission Expansion",
+    "Content": "New transmission corridors connect renewable-rich regions to demand centers. Permitting timelines and community acceptance often set deployment pace."
+  },
+  {
+    "Id": "191",
+    "Title": "Cybersecurity: Zero Trust Architecture",
+    "Content": "Zero trust assumes no implicit trust across networks or identities. Continuous verification, least privilege, and segmentation reduce lateral movement risk."
+  },
+  {
+    "Id": "192",
+    "Title": "Cybersecurity: Phishing Defense",
+    "Content": "Phishing protection combines user training, email filtering, and domain authentication. Rapid reporting workflows limit credential theft impact."
+  },
+  {
+    "Id": "193",
+    "Title": "Cybersecurity: Incident Response Playbooks",
+    "Content": "Playbooks define containment, eradication, and recovery steps for common attack classes. Clear roles shorten mean time to respond."
+  },
+  {
+    "Id": "194",
+    "Title": "Cybersecurity: Supply Chain Security",
+    "Content": "Third-party dependencies can introduce hidden vulnerabilities into production systems. SBOM tracking and signed artifacts improve provenance assurance."
+  },
+  {
+    "Id": "195",
+    "Title": "Cybersecurity: Endpoint Detection and Response",
+    "Content": "EDR tools collect host telemetry and detect suspicious behavior patterns. Automated isolation can contain ransomware before broad encryption occurs."
+  },
+  {
+    "Id": "196",
+    "Title": "Cybersecurity: Identity and Access Governance",
+    "Content": "Access governance audits privileges, role assignments, and policy drift. Strong IAM reduces insider risk and compliance violations."
+  },
+  {
+    "Id": "197",
+    "Title": "Cybersecurity: Threat Intelligence",
+    "Content": "Threat intelligence links indicators, adversary tactics, and campaign context. Prioritized feeds improve detection engineering and defensive planning."
+  },
+  {
+    "Id": "198",
+    "Title": "Cybersecurity: Cloud Misconfiguration",
+    "Content": "Exposed storage buckets and permissive policies are common cloud risks. Continuous posture scanning catches drift before exploitation."
+  },
+  {
+    "Id": "199",
+    "Title": "Cybersecurity: Cryptographic Key Management",
+    "Content": "Secure key lifecycles require generation, rotation, storage isolation, and revocation. Weak key governance undermines otherwise strong encryption."
+  },
+  {
+    "Id": "200",
+    "Title": "Cybersecurity: Red Team Exercises",
+    "Content": "Red teams emulate realistic attacker behavior to test defensive readiness. Findings expose process gaps beyond purely technical vulnerabilities."
+  },
+  {
+    "Id": "201",
+    "Title": "Financial Markets: Order Book Dynamics",
+    "Content": "Limit order books reflect supply, demand, and liquidity at multiple price levels. Queue position and spread changes influence execution quality."
+  },
+  {
+    "Id": "202",
+    "Title": "Financial Markets: Volatility Regimes",
+    "Content": "Volatility clusters in time and changes with macro uncertainty. Regime-aware risk models outperform constant-variance assumptions during stress periods."
+  },
+  {
+    "Id": "203",
+    "Title": "Financial Markets: Factor Investing",
+    "Content": "Factor portfolios target persistent return drivers like value, momentum, and quality. Diversification across factors can improve risk-adjusted outcomes."
+  },
+  {
+    "Id": "204",
+    "Title": "Financial Markets: Yield Curve Interpretation",
+    "Content": "Yield curve shape encodes market expectations for growth and rates. Inversions are often studied as recession probability signals."
+  },
+  {
+    "Id": "205",
+    "Title": "Financial Markets: Options Greeks",
+    "Content": "Delta, gamma, theta, and vega describe option sensitivity to market drivers. Greeks guide hedging and position risk management."
+  },
+  {
+    "Id": "206",
+    "Title": "Financial Markets: Credit Risk Modeling",
+    "Content": "Credit models estimate default likelihood and loss severity under uncertainty. Macro conditions and collateral quality materially affect risk estimates."
+  },
+  {
+    "Id": "207",
+    "Title": "Financial Markets: Liquidity Risk",
+    "Content": "Assets can become hard to trade without large price impact during stress. Liquidity-adjusted metrics capture hidden portfolio fragility."
+  },
+  {
+    "Id": "208",
+    "Title": "Financial Markets: Market Making",
+    "Content": "Market makers quote bid and ask prices while managing inventory risk. Profitability depends on spread capture, adverse selection, and latency."
+  },
+  {
+    "Id": "209",
+    "Title": "Financial Markets: Portfolio Rebalancing",
+    "Content": "Rebalancing restores target allocations as prices drift over time. Threshold and calendar rules trade off transaction costs and tracking error."
+  },
+  {
+    "Id": "210",
+    "Title": "Financial Markets: Stress Testing",
+    "Content": "Stress tests simulate severe scenarios to evaluate capital resilience. Scenario design should include correlation shifts and liquidity contraction."
   }
 ]

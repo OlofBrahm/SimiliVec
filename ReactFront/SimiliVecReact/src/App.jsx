@@ -11,9 +11,9 @@ import { SearchResults } from './components/SearchResults'
 import { HomeScreen } from './components/HomeScreen'
 import { Controls } from './components/Controls'
 import { NodeInfo } from './components/NodeInfo'
-import similivecLogo from './assets/similivec.svg'
-import githubIcon from './assets/github.svg'
-import linkedinIcon from './assets/linkedin.svg'
+import SimilivecLogo from './assets/similivec.svg?react'
+import GithubIcon from './assets/github.svg?react'
+import LinkedinIcon from './assets/linkedin.svg?react'
 import './App.css'
 
 
@@ -122,19 +122,16 @@ export default function App() {
         role="button"
         tabIndex={0}
       >
-        <img
-          src={similivecLogo}
-          alt="SimiliVec"
-        />
+        <SimilivecLogo className="header-svg"/>
       </header>
 
       <footer className='socials'>
         <div className="logo-footer">
           <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-            <img src={githubIcon} alt="Github" />
+            <GithubIcon className="social-icon"/>
           </a>
           <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-            <img src={linkedinIcon} alt="LinkedIn" />
+            <LinkedinIcon className="social-icon"/>
           </a>
         </div>
       </footer>
